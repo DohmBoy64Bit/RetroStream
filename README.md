@@ -25,7 +25,7 @@ There is no RetroStream account system. The UI is intentionally simple: open the
 - **Netflix-style horizontal rows:** arrow paging, mouse dragging, touch swiping, keyboard navigation, and no visible horizontal scrollbars.
 - **Rich title details:** backdrop art, poster art, synopsis, rating, genres, runtime, production information, cast, and crew.
 - **TV episode browser:** season selection, episode artwork, descriptions, runtimes, air-date awareness, and next-episode navigation.
-- **Playback integration:** movies and aired episodes resolve IMDb IDs through TMDB and use VidSrc embeds.
+- **Playback integration:** movies and aired episodes resolve IMDb IDs through TMDB and use VidSrc embeds through `dohmwatch.com`, with automatic backup-domain failover.
 - **Responsive design:** desktop, tablet, and mobile layouts with keyboard focus and reduced-motion support.
 - **Server-side TMDB access:** the TMDB read token stays in the Worker environment and is never exposed in browser JavaScript.
 
@@ -100,7 +100,8 @@ Open the local URL printed by Vinext. The project requests port **5173**.
 | `pnpm dev` | Compile RetroStream CSS and start the Vinext development server |
 | `pnpm build` | Compile CSS and create the production Vinext/Cloudflare build |
 | `pnpm lint` | Run ESLint |
-| `pnpm check` | Run dependency-free JavaScript syntax checks |
+| `pnpm check` | Run dependency-free syntax checks and watch-domain failover tests |
+| `pnpm test` | Run watch-domain failover tests |
 | `node scripts/build-css.mjs` | Rebuild `public/retrostream.css` from `src/styles.css` |
 
 ## Project structure
@@ -114,7 +115,9 @@ RetroStream/
 ├── public/
 │   ├── carousels.js          # paging, dragging, keyboard controls
 │   ├── favicon.svg
-│   └── retrostream.js        # discovery, search, details, episodes, playback
+│   ├── retrostream.js        # discovery, search, details, episodes, playback
+│   ├── watch-domains.js      # primary + backup VidSrc watch-domain resolver
+│   └── watch-states.css      # fallback/outage player states
 ├── scripts/
 │   └── build-css.mjs         # Tailwind/daisyUI compiler
 ├── src/
@@ -142,6 +145,22 @@ The proxy rejects paths and query parameters that are outside RetroStream's expe
 ## How playback works
 
 For movies and TV episodes, RetroStream asks TMDB for external IDs. If a valid IMDb ID is available, RetroStream builds the corresponding VidSrc embed URL and opens it in an iframe.
+
+The preferred watch domain is **`https://dohmwatch.com`**. Before loading a player, RetroStream checks that domain first. If it cannot be reached, the site automatically works through the VidSrc backup network in this order:
+
+1. `vidsrc2.ru`
+2. `vidsrc.ir`
+3. `vidsrcme.ru`
+4. `vidsrcme.su`
+5. `vidsrc-me.ru`
+6. `vidsrc-me.su`
+7. `vidsrc-embed.ru`
+8. `vidsrc-embed.su`
+9. `vsrc.su`
+
+When a backup is active, the player page tells the viewer that `dohmwatch.com` is temporarily unavailable and warns that the backup may have a slightly worse ad experience. If every watch domain is unreachable, RetroStream replaces the broken player with a clear temporary-outage message and a **Try again** action. The player also exposes **try another watch domain** for provider failures that a cross-origin iframe cannot report reliably to its parent page.
+
+The fallback choice is not persisted: every new playback request starts with `dohmwatch.com` again, so the primary domain automatically becomes preferred as soon as it is reachable.
 
 A title appearing in TMDB does **not** guarantee that a stream exists. Availability depends on the external playback provider, title, and region. Embedded third-party players may also include advertising.
 
