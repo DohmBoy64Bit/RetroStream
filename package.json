@@ -19,6 +19,7 @@
     "@cloudflare/vite-plugin": "1.37.1",
     "@cloudflare/workers-types": "4.20260515.1",
     "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.15.21",
     "daisyui": "^5.7.28",
     "eslint": "9.39.4",
     "postcss": "^8.5.28",
