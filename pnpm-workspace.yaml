@@ -1,6 +1,8 @@
 # pnpm 11 blocks dependency lifecycle scripts unless they are explicitly reviewed.
 # Vite and Cloudflare Workers require these native build/runtime packages.
 allowBuilds:
+  '@google/genai': true
   esbuild: true
+  protobufjs: true
   sharp: true
   workerd: true

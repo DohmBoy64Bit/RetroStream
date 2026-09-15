@@ -15,7 +15,7 @@ export function installCarousels(root) {
     row.before(wrapper);
     wrapper.append(row);
     row.id ||= `carousel-${++sequence}`;
-    row.tabIndex = 0;
+    row.tabIndex = -1;
     row.setAttribute('role', 'region');
     row.setAttribute('aria-label', label);
     row.classList.add('carousel-track');
@@ -42,11 +42,13 @@ export function installCarousels(root) {
     let pointer = null;
     let dragged = false;
     let suppressClickUntil = 0;
+    let rafId = null;
     row.addEventListener('pointerdown', event => {
       if (event.pointerType !== 'mouse' || event.button !== 0 || row.scrollWidth <= row.clientWidth) return;
       pointer = {id: event.pointerId, x: event.clientX, left: row.scrollLeft};
       dragged = false;
       suppressClickUntil = 0;
+      rafId = null;
     });
     row.addEventListener('pointermove', event => {
       if (!pointer || event.pointerId !== pointer.id) return;
@@ -58,7 +60,11 @@ export function installCarousels(root) {
         row.classList.add('carousel-dragging');
       }
       event.preventDefault();
-      row.scrollLeft = pointer.left - delta;
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        row.scrollLeft = pointer.left - delta;
+        rafId = null;
+      });
     });
     function finish(event) {
       if (!pointer || event.pointerId !== pointer.id) return;
@@ -66,6 +72,7 @@ export function installCarousels(root) {
       if (row.hasPointerCapture(pointer.id)) row.releasePointerCapture(pointer.id);
       pointer = null;
       dragged = false;
+      rafId = null;
       row.classList.remove('carousel-dragging');
       update();
     }

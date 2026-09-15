@@ -41,8 +41,16 @@ async function managePlayer(frame) {
   note?.remove();
   let active = null;
   let run = 0;
+  region.addEventListener('click', e => {
+    const btn = e.target.closest('#retry-watch-domains, #reload-player, #switch-watch-domain');
+    if (!btn) return;
+    if (btn.id === 'retry-watch-domains') load(null);
+    else if (btn.id === 'reload-player' && active) {
+      const f = region.querySelector('.player');
+      if (f) f.src = active.url;
+    } else if (btn.id === 'switch-watch-domain') load(active?.index ?? null);
+  });
 
-  const retry = () => region.querySelector('#retry-watch-domains')?.addEventListener('click', () => load(null));
   const load = async afterIndex => {
     const ticket = ++run;
     region.innerHTML = checking(
@@ -50,15 +58,15 @@ async function managePlayer(frame) {
       afterIndex == null ? 'Checking dohmwatch.com first, then backups if needed.' : 'Looking for the next available VidSrc backup.',
     );
     if (navigator.onLine === false) {
-      region.innerHTML = '<div class="error-box watch-outage" role="alert"><h2>You’re offline.</h2><p>Reconnect to the internet and try again. RetroStream will check dohmwatch.com first.</p><button class="btn btn-secondary" id="retry-watch-domains">Try again</button></div>';
-      retry(); return;
+      region.innerHTML = '<div class="error-box watch-outage" role="alert"><h2>You\'re offline.</h2><p>Reconnect to the internet and try again. RetroStream will check dohmwatch.com first.</p><button class="btn btn-secondary" id="retry-watch-domains">Try again</button></div>';
+      return;
     }
     const result = await resolveWatchDomain(details, { afterIndex });
     if (ticket !== run || !region.isConnected) return;
     if (!result) {
       active = null;
       region.innerHTML = '<div class="error-box watch-outage" role="alert"><h2>All watch domains are temporarily unavailable.</h2><p>Playback should be back shortly. Try again in a moment.</p><div class="actions watch-outage-actions"><button class="btn btn-primary" id="retry-watch-domains">Try again</button></div></div>';
-      retry(); return;
+      return;
     }
     active = result;
     const host = esc(new URL(result.domain).hostname);
@@ -66,8 +74,6 @@ async function managePlayer(frame) {
     region.innerHTML = `${fallback}<iframe class="player" data-watch-managed="true" src="${esc(result.url)}" title="RetroStream player" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="origin"></iframe><p class="player-note">Player not loading? <button class="link" id="reload-player">Reload player</button> or <button class="link" id="switch-watch-domain">try another watch domain</button>. Playback is powered by VidSrc and may include ads. Availability varies.</p>`;
     const liveFrame = region.querySelector('.player');
     liveFrame?.addEventListener('error', () => load(active?.index ?? null), { once: true });
-    region.querySelector('#reload-player')?.addEventListener('click', () => { if (liveFrame && active) liveFrame.src = active.url; });
-    region.querySelector('#switch-watch-domain')?.addEventListener('click', () => load(active?.index ?? null));
   };
 
   await load(null);

@@ -7,7 +7,7 @@ const root = new URL('../', import.meta.url);
 test('root UI is a Vite HTML entry owned by the vanilla client', async () => {
   const html = await fs.readFile(new URL('index.html', root), 'utf8');
   assert.match(html, /<html[^>]*data-theme="retrostream"/);
-  assert.match(html, /<main id="main" tabindex="-1">/);
+  assert.match(html, /<main id="main" tabindex="-1" aria-live="polite">/);
   assert.match(html, /<script type="module" src="\/src\/main\.js"><\/script>/);
   await assert.rejects(fs.access(new URL('app/page.tsx', root)));
   await assert.rejects(fs.access(new URL('app/layout.tsx', root)));
