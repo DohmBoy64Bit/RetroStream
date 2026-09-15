@@ -28,3 +28,8 @@ test('Vite excludes the Cloudflare runtime module from client dependency pre-bun
   assert.match(source, /optimizeDeps\s*:\s*\{/);
   assert.match(source, /exclude\s*:\s*\[[^\]]*["']cloudflare:workers["']/s);
 });
+
+test('Wrangler compatibility date stays within the bundled Workers runtime', async () => {
+  const wrangler = await fs.readFile(new URL('wrangler.jsonc', root), 'utf8');
+  assert.match(wrangler, /"compatibility_date"\s*:\s*"2026-05-22"/);
+});
