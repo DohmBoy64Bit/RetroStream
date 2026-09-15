@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s);
 const main=$('#main');
 installCarousels(main);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const star='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3 6 7 1-5 5 1 8-6-4-6 4 1-8-5-5 7-1z"/></svg>';
+const star='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 2.9 6.2 6.8.8-5 4.7 1.4 6.7-6.1-3.4-6.1 3.4 1.4-6.7-5-4.7 6.8-.8z"/></svg>';
 const play='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m7 4 14 8-14 8z"/></svg>';
 const info='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v1"/></svg>';
 let imageBase='https://image.tmdb.org/t/p/',genres={movie:[],tv:[]},generation=0,featured=[],featureIndex=0;
