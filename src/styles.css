@@ -47,3 +47,7 @@ html,body{overflow-x:clip}
 /* Detector-verified contrast correction for primary actions. */
 :root{--orange-ink:#171411}
 .btn-primary{color:var(--orange-ink)}
+
+
+/* Lucide-style rating icon: outlined, crisp, and visible on dark cards. */
+.rating svg{fill:none;stroke:currentColor;stroke-width:1.8}
