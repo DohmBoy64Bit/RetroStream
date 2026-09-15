@@ -1,0 +1,40 @@
+{
+  "name": "retrostream",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "node scripts/build-css.mjs && vinext dev --port 5173",
+    "build": "node scripts/build-css.mjs && vinext build",
+    "lint": "eslint .",
+    "check": "node --check public/retrostream.js && node --check public/carousels.js && node --check app/api/tmdb/route.js && node --check app/route.js && node --check src/shell.js && node --check scripts/build-css.mjs"
+  },
+  "dependencies": {
+    "daisyui": "^5.7.28",
+    "next": "16.3.4",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "react-server-dom-webpack": "19.2.6",
+    "vinext": "1.0.0-beta.5"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.37.1",
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitejs/plugin-rsc": "0.5.26",
+    "eslint": "9.39.4",
+    "postcss": "^8.5.28",
+    "tailwindcss": "4.2.1",
+    "typescript": "5.9.3",
+    "vite": "8.0.13",
+    "wrangler": "4.92.0",
+    "@cloudflare/workers-types": "4.20260515.1"
+  },
+  "type": "module",
+  "packageManager": "pnpm@11.25.0"
+}

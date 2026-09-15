@@ -6,153 +6,181 @@
 
 A cinema-inspired movie and TV browser with rich title details, effortless episode selection, and no application signup.
 
-**HTML + JavaScript · Tailwind CSS 4 · daisyUI 5 · TMDB**
-
-[Features](#features) · [Quick start](#quick-start) · [Project structure](#project-structure) · [Configuration](#configuration)
+**HTML + Vanilla JavaScript · Tailwind CSS 4 · daisyUI 5 · TMDB**
 
 </div>
 
 ---
 
+## What RetroStream does
+
+RetroStream is a lightweight streaming-style catalog interface for discovering movies and TV series, opening rich title details, browsing seasons and episodes, and embedding playback through VidSrc when an IMDb identifier is available.
+
+There is no RetroStream account system. The UI is intentionally simple: open the site, find something to watch, pick a title or episode, and play it.
+
 ## Features
 
-- **Discover something good:** trending titles, popular movies, TV series, and the latest releases.
-- **Search your way:** look up titles or IMDb IDs, then narrow results by media type, genre, release year, and TMDB rating.
-- **Browse without the scrollbars:** side-arrow paging, mouse dragging, mobile swiping, and keyboard controls across poster, genre, cast, and crew rows.
-- **Explore each title:** artwork, synopsis, audience rating, genres, runtime, production details, cast, and crew.
-- **Choose the right episode:** season selection, episode artwork, descriptions, runtime, and next-episode navigation. Unaired episodes are marked as upcoming.
-- **Watch in place:** movie and episode embeds use IMDb IDs resolved through TMDB.
-- **Keep credentials off the client:** an allowlisted server endpoint handles TMDB requests.
+- **Discovery home:** trending titles, popular movies, popular TV series, and current theatrical releases.
+- **Robust search:** search by title or IMDb ID, then filter loaded results by media type, genre, release year, and TMDB audience rating.
+- **Netflix-style horizontal rows:** arrow paging, mouse dragging, touch swiping, keyboard navigation, and no visible horizontal scrollbars.
+- **Rich title details:** backdrop art, poster art, synopsis, rating, genres, runtime, production information, cast, and crew.
+- **TV episode browser:** season selection, episode artwork, descriptions, runtimes, air-date awareness, and next-episode navigation.
+- **Playback integration:** movies and aired episodes resolve IMDb IDs through TMDB and use VidSrc embeds.
+- **Responsive design:** desktop, tablet, and mobile layouts with keyboard focus and reduced-motion support.
+- **Server-side TMDB access:** the TMDB read token stays in the Worker environment and is never exposed in browser JavaScript.
 
-The interface uses charcoal surfaces, warm ivory text, burnt-orange controls, and full-width film artwork. Responsive layouts, visible keyboard focus, reduced-motion support, and retry states are included.
+## Stack
+
+RetroStream's product UI is **HTML and vanilla JavaScript**. Vinext and the Cloudflare Vite plugin provide the Worker/App Router runtime used to host the HTML shell and the `/api/tmdb` proxy.
+
+- HTML + vanilla JavaScript
+- Tailwind CSS 4
+- daisyUI 5
+- Vinext / Vite
+- Cloudflare Workers
+- TMDB API
+- VidSrc embeds
 
 ## Quick start
 
-### 1. Prerequisites
+### Requirements
 
-- **Node.js 22.13 or newer**, as required by `package.json`.
-- **pnpm 11.25.0**, matching the repository's `packageManager` declaration.
-- A **TMDB API Read Access Token**, available in your [TMDB API settings](https://www.themoviedb.org/settings/api).
+- Node.js **22.13+**
+- pnpm **11.25.0**
+- A TMDB **API Read Access Token**
 
-If pnpm is not already installed:
+Install pnpm if needed:
 
 ```bash
 npm install --global pnpm@11.25.0
 ```
 
-### 2. Get the source
+Clone the repository and install dependencies:
 
 ```bash
 git clone https://github.com/DohmBoy64Bit/RetroStream.git
 cd RetroStream
-pnpm install --frozen-lockfile
+pnpm install
 ```
 
-### 3. Configure TMDB
+Copy the environment template:
 
-Copy `.dev.vars.example` to `.dev.vars`.
-
-**PowerShell:**
+**PowerShell**
 
 ```powershell
-Copy-Item .dev.vars.example .dev.vars
+Copy-Item .env.example .env
 ```
 
-**macOS / Linux:**
+**macOS / Linux**
 
 ```bash
-cp .dev.vars.example .dev.vars
+cp .env.example .env
 ```
 
-Open `.dev.vars` and add your token:
+Add your TMDB read token:
 
 ```dotenv
 TMDB_READ_TOKEN=your_tmdb_read_access_token
 ```
 
-Use the **API Read Access Token**, not the shorter API key. The local Cloudflare runtime reads `.dev.vars`; that file is excluded from Git. See [Cloudflare's secret configuration](https://developers.cloudflare.com/workers/configuration/secrets/) for background.
+Cloudflare's local runtime supports both `.env` and `.dev.vars`; use one or the other. Both are ignored by Git.
 
-### 4. Start developing
+Start RetroStream:
 
 ```bash
-node scripts/build-css.mjs
 pnpm dev
 ```
 
-Open the local URL printed in the terminal. The portable development command defaults to port **5173**.
-
-After editing `src/styles.css`, rerun `node scripts/build-css.mjs` to regenerate the stylesheet. The production build performs this step automatically.
+Open the local URL printed by Vinext. The project requests port **5173**.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
-| `pnpm dev` | Start the development server |
-| `node scripts/build-css.mjs` | Compile Tailwind, daisyUI, and the custom stylesheet |
-| `pnpm build` | Compile CSS and build the Worker plus static assets |
-| `pnpm start` | Run the built Worker locally with Wrangler |
-| `pnpm lint` | Run the repository's ESLint configuration |
-
-`pnpm start` requires a successful build. It runs locally; it does not publish the website.
+| `pnpm dev` | Compile RetroStream CSS and start the Vinext development server |
+| `pnpm build` | Compile CSS and create the production Vinext/Cloudflare build |
+| `pnpm lint` | Run ESLint |
+| `pnpm check` | Run dependency-free JavaScript syntax checks |
+| `node scripts/build-css.mjs` | Rebuild `public/retrostream.css` from `src/styles.css` |
 
 ## Project structure
 
-| Location | Responsibility |
-| --- | --- |
-| `src/shell.js` | Semantic HTML document and navigation |
-| `src/styles.css` | Theme, layout, responsive styles, and carousel presentation |
-| `public/retrostream.js` | Catalog browsing, search, title details, and episode flows |
-| `public/carousels.js` | Arrow paging, dragging, keyboard navigation, and row lifecycle |
-| `public/retrostream.css` | Compiled stylesheet, regenerated by the CSS build |
-| `app/route.js` | Serves the HTML document at `/` |
-| `app/api/tmdb/route.js` | Server-side TMDB proxy and request allowlist |
-| `scripts/build-css.mjs` | Tailwind and daisyUI compilation |
-| `vite.config.ts` | Vite, Vinext, and Cloudflare build configuration |
+```text
+RetroStream/
+├── app/
+│   ├── api/tmdb/route.js     # allowlisted server-side TMDB proxy
+│   ├── layout.tsx            # minimal App Router layout
+│   └── route.js              # serves the RetroStream HTML document
+├── public/
+│   ├── carousels.js          # paging, dragging, keyboard controls
+│   ├── favicon.svg
+│   └── retrostream.js        # discovery, search, details, episodes, playback
+├── scripts/
+│   └── build-css.mjs         # Tailwind/daisyUI compiler
+├── src/
+│   ├── shell.js              # semantic HTML shell/navigation
+│   └── styles.css            # RetroStream visual system and responsive CSS
+├── .env.example
+├── package.json
+├── vite.config.ts
+└── wrangler.jsonc
+```
 
-The product frontend is **HTML and vanilla JavaScript**. The hosting scaffold includes Vinext, React, TypeScript, and unused component primitives; these are infrastructure dependencies, not a React rewrite of the browser interface.
+Internal project/design state such as `.openai/`, `.impeccable/`, `PRODUCT.md`, and `DESIGN.md` is intentionally excluded from the public repository.
 
-Frontend presentation and TMDB access are separate. Dot folders and internal planning documents are excluded from this repository. A local hosting manifest is optional, so a fresh clone does not need a `.openai` directory.
+## How catalog requests work
 
-## Configuration
+The browser never contacts TMDB with your API token directly.
 
-| Setting | Where it belongs | Purpose |
-| --- | --- | --- |
-| `TMDB_READ_TOKEN` | `.dev.vars` locally; a server secret in production | Authenticates metadata requests to TMDB |
+1. Browser code calls `/api/tmdb` with an allowlisted TMDB path and approved query parameters.
+2. The Worker reads `TMDB_READ_TOKEN` from its environment.
+3. The Worker calls TMDB with that token.
+4. The browser receives metadata only.
 
-Never add the token to `src/shell.js`, `public/`, or a client-exposed environment variable. No real credentials are included in this repository.
+The proxy rejects paths and query parameters that are outside RetroStream's expected catalog flows.
 
-The build targets **Cloudflare Workers with static assets**. It is not a static-only GitHub Pages site: the TMDB proxy needs a server runtime. Production hosting must supply `TMDB_READ_TOKEN` as a secret. Hosting identity, generated runtime state, and deployment credentials remain local to the chosen host.
+## How playback works
 
-## How browsing and playback work
+For movies and TV episodes, RetroStream asks TMDB for external IDs. If a valid IMDb ID is available, RetroStream builds the corresponding VidSrc embed URL and opens it in an iframe.
 
-1. The browser requests catalog data through `/api/tmdb`.
-2. The server validates the requested endpoint and authenticates with TMDB.
-3. TMDB supplies metadata, artwork paths, credits, and external identifiers.
-4. Selecting a movie or an aired episode opens a VidSrc iframe using its IMDb ID.
+A title appearing in TMDB does **not** guarantee that a stream exists. Availability depends on the external playback provider, title, and region. Embedded third-party players may also include advertising.
 
-**Ratings are TMDB audience scores**, not IMDb scores. A title appearing in TMDB does not guarantee a playable stream. Availability depends on the external player, title, and region; the player may include ads.
+**Ratings displayed by RetroStream are TMDB audience ratings, not IMDb ratings.**
 
-Discovery filters run server-side. Search genre, year, and rating filters apply to the search pages loaded so far; **Load more** continues through additional results. The displayed count describes loaded matches rather than the entire database.
+## Keyboard, mouse, and touch
 
-## Keyboard and touch
+- Press `/` when you are not typing to open search.
+- Focus a horizontal row and use **Left / Right** to page through it.
+- Use **Home / End** to move to the beginning or end of a row.
+- Drag a row with the mouse.
+- Swipe naturally on touch devices.
+- Carousel arrows disappear or disable at the ends.
+- Dragging suppresses the accidental click that would otherwise open a poster on pointer release.
 
-- Press `/` to open search when you are not typing in an input.
-- Tab to a horizontal row and use **Left / Right** to page through it.
-- Use **Home / End** to move to the beginning or end of a focused row.
-- Drag with a mouse or swipe on a touch device.
-- Arrow controls disable at the ends, and a drag does not activate the title underneath it.
+## Production deployment
 
-## Verification status
+RetroStream targets Cloudflare Workers. Set `TMDB_READ_TOKEN` as a production Worker secret rather than committing it to a file.
 
-The production build and JavaScript syntax checks have passed. Targeted checks cover metadata escaping, endpoint restrictions, missing-secret errors, artwork fallbacks, release sorting, episode availability, carousel paging, dragging, and click suppression. A live TMDB metadata request has also succeeded.
+The current Vinext Cloudflare workflow supports deployment through `@vinext/cloudflare` after the Worker configuration is in place. See the Vinext and Cloudflare Workers documentation for authentication and deployment commands appropriate to your account.
 
-Full browser layout checks and end-to-end third-party video playback have not been verified. The optional WebMCP search integration is feature-detected and has not been validated in a supporting browser.
+## Verification notes
+
+The recovered source has been checked with:
+
+- Node JavaScript syntax parsing across the application files
+- JSON/configuration parsing
+- secret scanning for accidentally committed TMDB values
+- repository hygiene checks for private design/tool state
+- regression checks ensuring CSS is built before local development starts
+- regression checks ensuring required Cloudflare Worker types are declared
+
+A full `pnpm build` could not be rerun in the recovery sandbox because that environment could not reach the npm registry. Run `pnpm install` followed by `pnpm build` in a network-enabled environment before production deployment.
 
 ## Credits
 
-- [TMDB](https://www.themoviedb.org/) — movie, television, people, and image data. This product uses the TMDB API but is not endorsed or certified by TMDB.
-- [VidSrc documentation](https://vidsrc2.ru/vidsrc/docs/) — external player embeds.
+- [TMDB](https://www.themoviedb.org/) — movie, television, people, and image metadata. RetroStream uses the TMDB API but is not endorsed or certified by TMDB.
+- [VidSrc](https://vidsrc2.ru/vidsrc/docs/) — external playback embeds.
 - [Tailwind CSS](https://tailwindcss.com/) and [daisyUI](https://daisyui.com/) — styling foundations.
-- [Google Fonts](https://fonts.google.com/) — DM Sans and Space Grotesk.
+- [Vinext](https://vinext.io/) and [Cloudflare Workers](https://developers.cloudflare.com/workers/) — application/runtime tooling.
 
-Third-party assets, services, and vendored code retain their respective terms and licenses.
+Third-party services and assets remain subject to their respective terms and licenses.
