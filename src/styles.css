@@ -43,3 +43,7 @@ html,body{overflow-x:clip}
   .detail-hero{min-height:500px}
   .carousel-shell:after{width:24px}
 }
+
+/* Detector-verified contrast correction for primary actions. */
+:root{--orange-ink:#171411}
+.btn-primary{color:var(--orange-ink)}
