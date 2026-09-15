@@ -27,3 +27,19 @@
 @media(hover:hover) and (pointer:fine){.carousel-arrow{opacity:0}.carousel-shell:hover>.carousel-arrow,.carousel-shell:focus-within>.carousel-arrow{opacity:1}}
 @media(max-width:680px){.carousel-prev{left:-10px}.carousel-next{right:-10px}.carousel-arrow{width:36px;min-height:44px;padding:6px}}
 @media(prefers-reduced-motion:reduce){.carousel-arrow{transition:none}}
+
+/* Refinement pass: preserve the clean canvas while preventing page-level overflow. */
+html,body{overflow-x:clip}
+.search-hint{color:var(--muted);font-size:13px;margin:-2px 0 18px}
+.carousel-shell:after{content:'';position:absolute;z-index:1;top:0;right:0;bottom:14px;width:34px;pointer-events:none;background:linear-gradient(90deg,transparent,#141515)}
+.carousel-shell:focus-within:after{opacity:.35}
+.poster-card:focus-visible{outline:2px solid var(--orange);outline-offset:5px;border-radius:9px}
+.episode:focus-visible{outline:2px solid var(--orange);outline-offset:4px;border-radius:6px}
+.episode:hover,.episode:focus-visible{background:#ffffff08}
+.toggle button:focus-visible,.genre-strip a:focus-visible{outline-offset:3px}
+@media(max-width:680px){
+  .masthead nav a{padding-left:7px;padding-right:7px}
+  .feature{min-height:490px}
+  .detail-hero{min-height:500px}
+  .carousel-shell:after{width:24px}
+}
