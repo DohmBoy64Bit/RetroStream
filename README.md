@@ -85,7 +85,7 @@ pnpm install
 
 ### pnpm 11 build-script policy
 
-pnpm 11 blocks dependency lifecycle scripts unless the project explicitly reviews them. RetroStream's `pnpm-workspace.yaml` allows only the native lifecycle scripts required by this stack: `esbuild` and `workerd`.
+pnpm 11 blocks dependency lifecycle scripts unless the project explicitly reviews them. RetroStream's `pnpm-workspace.yaml` allows only the reviewed build scripts required by this stack: `esbuild`, `sharp`, and `workerd`.
 
 If you see `ERR_PNPM_IGNORED_BUILDS`, make sure `pnpm-workspace.yaml` is present and run `pnpm install` again. Do not enable all dependency build scripts globally.
 
