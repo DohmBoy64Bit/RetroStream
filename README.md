@@ -63,6 +63,12 @@ cd RetroStream
 pnpm install
 ```
 
+### pnpm 11 build-script policy
+
+pnpm 11 blocks dependency lifecycle scripts unless the project explicitly reviews them. RetroStream includes `pnpm-workspace.yaml` allowing build scripts only for `esbuild`, `sharp`, and `workerd`, which are required by the Vite/Next/Cloudflare toolchain.
+
+If you see `ERR_PNPM_IGNORED_BUILDS`, make sure `pnpm-workspace.yaml` is present in the project root, then run `pnpm install` again. Do not use `dangerouslyAllowAllBuilds`; RetroStream does not need it.
+
 Copy the environment template:
 
 **PowerShell**
@@ -121,11 +127,13 @@ RetroStream/
 │   └── watch-states.css      # fallback/outage player states
 ├── scripts/
 │   └── build-css.mjs         # Tailwind/daisyUI compiler
+├── tests/                    # watch-domain/player/release regression tests
 ├── src/
 │   ├── shell.js              # semantic HTML shell/navigation
 │   └── styles.css            # RetroStream visual system and responsive CSS
 ├── .env.example
 ├── package.json
+├── pnpm-workspace.yaml       # pnpm 11 dependency build allowlist
 ├── vite.config.ts
 └── wrangler.jsonc
 ```
