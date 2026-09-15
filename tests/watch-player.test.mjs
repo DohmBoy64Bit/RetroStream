@@ -25,7 +25,7 @@ test('does not rewrite unrelated markup', () => {
 
 test('loads the watch controller as the browser entrypoint before the catalog app', async () => {
   const { readFile } = await import('node:fs/promises');
-  const shell = await readFile(new URL('../src/shell.js', import.meta.url), 'utf8');
-  assert.match(shell, /<script type="module" src="\/watch-player\.js"><\/script>/);
-  assert.doesNotMatch(shell, /<script type="module" src="\/retrostream\.js"><\/script>/);
+  const page = await readFile(new URL('../app/page.tsx', import.meta.url), 'utf8');
+  assert.match(page, /<script type="module" src="\/watch-player\.js" \/>/);
+  assert.doesNotMatch(page, /<script type="module" src="\/retrostream\.js"/);
 });
