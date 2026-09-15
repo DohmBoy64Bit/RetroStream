@@ -101,7 +101,7 @@ Open the local URL printed by Vinext. The project requests port **5173**.
 | `pnpm build` | Compile CSS and create the production Vinext/Cloudflare build |
 | `pnpm lint` | Run ESLint |
 | `pnpm check` | Run dependency-free syntax checks and watch-domain failover tests |
-| `pnpm test` | Run watch-domain failover tests |
+| `pnpm test` | Run watch-domain and player-controller tests |
 | `node scripts/build-css.mjs` | Rebuild `public/retrostream.css` from `src/styles.css` |
 
 ## Project structure
@@ -115,7 +115,8 @@ RetroStream/
 ├── public/
 │   ├── carousels.js          # paging, dragging, keyboard controls
 │   ├── favicon.svg
-│   ├── retrostream.js        # discovery, search, details, episodes, playback
+│   ├── retrostream.js        # discovery, search, details, and episode flows
+│   ├── watch-player.js       # resilient player controller and failover UX
 │   ├── watch-domains.js      # primary + backup VidSrc watch-domain resolver
 │   └── watch-states.css      # fallback/outage player states
 ├── scripts/
@@ -192,6 +193,7 @@ The recovered source has been checked with:
 - repository hygiene checks for private design/tool state
 - regression checks ensuring CSS is built before local development starts
 - regression checks ensuring required Cloudflare Worker types are declared
+- watch-domain order, URL generation, player interception, and fallback-controller tests
 
 A full `pnpm build` could not be rerun in the recovery sandbox because that environment could not reach the npm registry. Run `pnpm install` followed by `pnpm build` in a network-enabled environment before production deployment.
 

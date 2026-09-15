@@ -9,8 +9,8 @@
     "dev": "node scripts/build-css.mjs && vinext dev --port 5173",
     "build": "node scripts/build-css.mjs && vinext build",
     "lint": "eslint .",
-    "check": "node --check public/retrostream.js && node --check public/carousels.js && node --check public/watch-domains.js && node --check app/api/tmdb/route.js && node --check app/route.js && node --check src/shell.js && node --check scripts/build-css.mjs && node --test tests/watch-domains.test.mjs",
-    "test": "node --test tests/watch-domains.test.mjs"
+    "check": "node --check public/retrostream.js && node --check public/carousels.js && node --check public/watch-domains.js && node --check app/api/tmdb/route.js && node --check app/route.js && node --check src/shell.js && node --check scripts/build-css.mjs && node --check public/watch-player.js && node --test tests/watch-domains.test.mjs tests/watch-player.test.mjs",
+    "test": "node --test tests/watch-domains.test.mjs tests/watch-player.test.mjs"
   },
   "dependencies": {
     "daisyui": "^5.7.28",
