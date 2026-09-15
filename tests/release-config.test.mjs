@@ -11,3 +11,9 @@ test('pnpm 11 build-script allowlist is committed', async () => {
     assert.match(yaml, new RegExp(`^\\s{2}${dependency}: true\\s*$`, 'm'));
   }
 });
+
+test('CSS build resolves file URLs with Windows-safe paths', async () => {
+  const source = await fs.readFile(new URL('scripts/build-css.mjs', root), 'utf8');
+  assert.match(source, /fileURLToPath/);
+  assert.doesNotMatch(source, /\.pathname/);
+});
