@@ -4,8 +4,6 @@
 .pnp.*
 
 # build output
-/.next/
-/.vinext/
 /dist/
 /out/
 
@@ -16,7 +14,7 @@
 # environment and secrets
 .env*
 .dev.vars*
-!.env.example
+!.dev.vars.example
 
 # internal project/design state
 /.openai/

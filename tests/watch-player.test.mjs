@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseLegacyPlayerUrl, rewriteLegacyPlayerMarkup } from '../public/watch-player.js';
+import { parseLegacyPlayerUrl, rewriteLegacyPlayerMarkup } from '../src/app/watch-player.js';
 
 test('parses legacy VidSrc movie and TV player URLs into playback details', () => {
   assert.deepEqual(parseLegacyPlayerUrl('https://vidsrc2.ru/embed/movie/tt1300854?autoplay=0'), {
@@ -23,9 +23,10 @@ test('does not rewrite unrelated markup', () => {
   assert.equal(rewriteLegacyPlayerMarkup(input), input);
 });
 
-test('loads the watch controller as the browser entrypoint before the catalog app', async () => {
+test('watch controller remains the catalog bootstrap boundary', async () => {
   const { readFile } = await import('node:fs/promises');
-  const page = await readFile(new URL('../app/page.tsx', import.meta.url), 'utf8');
-  assert.match(page, /<script type="module" src="\/watch-player\.js" \/>/);
-  assert.doesNotMatch(page, /<script type="module" src="\/retrostream\.js"/);
+  const entry = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+  const controller = await readFile(new URL('../src/app/watch-player.js', import.meta.url), 'utf8');
+  assert.match(entry, /import ['"]\.\/app\/watch-player\.js['"]/);
+  assert.match(controller, /import\(['"]\.\/retrostream\.js['"]\)/);
 });

@@ -1,12 +1,12 @@
 export default [
   {
-    ignores: ["dist/**", ".next/**", "public/retrostream.css"],
+    ignores: ["dist/**"],
   },
   {
     files: ["**/*.{js,mjs}"],
     languageOptions: { ecmaVersion: "latest", sourceType: "module" },
     rules: {
-      "no-undef": "off"
-    }
-  }
+      "no-undef": "off",
+    },
+  },
 ];

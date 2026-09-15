@@ -4,7 +4,7 @@ import {
   WATCH_DOMAINS,
   buildWatchUrl,
   resolveWatchDomain,
-} from '../public/watch-domains.js';
+} from '../src/app/watch-domains.js';
 
 test('keeps dohmwatch primary and preserves the requested fallback order', () => {
   assert.deepEqual(WATCH_DOMAINS, [

@@ -6,7 +6,7 @@
 
 A cinema-inspired movie and TV browser with rich title details, effortless episode selection, and no application signup.
 
-**HTML + Vanilla JavaScript · Tailwind CSS 4 · daisyUI 5 · TMDB**
+**HTML + Vanilla JavaScript · Vite · Tailwind CSS 4 · daisyUI 5 · Cloudflare Workers · TMDB**
 
 </div>
 
@@ -16,7 +16,7 @@ A cinema-inspired movie and TV browser with rich title details, effortless episo
 
 RetroStream is a lightweight streaming-style catalog interface for discovering movies and TV series, opening rich title details, browsing seasons and episodes, and embedding playback through VidSrc when an IMDb identifier is available.
 
-There is no RetroStream account system. The UI is intentionally simple: open the site, find something to watch, pick a title or episode, and play it.
+There is no RetroStream account system. Open the site, find something to watch, pick a title or episode, and play it.
 
 ## Features
 
@@ -27,17 +27,37 @@ There is no RetroStream account system. The UI is intentionally simple: open the
 - **TV episode browser:** season selection, episode artwork, descriptions, runtimes, air-date awareness, and next-episode navigation.
 - **Playback integration:** movies and aired episodes resolve IMDb IDs through TMDB and use VidSrc embeds through `dohmwatch.com`, with automatic backup-domain failover.
 - **Responsive design:** desktop, tablet, and mobile layouts with keyboard focus and reduced-motion support.
-- **Server-side TMDB access:** the TMDB read token stays in the Worker environment and is never exposed in browser JavaScript.
+- **Server-side TMDB access:** the TMDB read token stays in the Cloudflare Worker environment and is never exposed in browser JavaScript.
+
+## Architecture
+
+RetroStream intentionally has one frontend renderer: **vanilla JavaScript owns the application DOM**. Vite serves and bundles the client, while a small Cloudflare Worker owns `/api/*` server concerns such as the TMDB proxy.
+
+```text
+Browser
+  └─ Vite client
+      ├─ index.html
+      ├─ src/main.js
+      ├─ RetroStream UI + hash routing
+      └─ player/domain controller
+             │
+             └─ fetch /api/tmdb
+                    │
+                    ▼
+              Cloudflare Worker
+                    │
+                    └─ TMDB API
+```
+
+There is no React hydration layer, no Next.js App Router, and no competing DOM owner.
 
 ## Stack
 
-RetroStream's interactive product UI remains **vanilla JavaScript**, with a minimal Vinext App Router page providing the semantic HTML shell. Vinext and the Cloudflare Vite plugin provide the application runtime and the `/api/tmdb` proxy.
-
 - HTML + vanilla JavaScript
+- Vite 8
 - Tailwind CSS 4
 - daisyUI 5
-- Vinext / Vite
-- Cloudflare Workers
+- Cloudflare Vite plugin + Workers
 - TMDB API
 - VidSrc embeds
 
@@ -55,7 +75,7 @@ Install pnpm if needed:
 npm install --global pnpm@11.25.0
 ```
 
-Clone the repository and install dependencies:
+Clone and install:
 
 ```bash
 git clone https://github.com/DohmBoy64Bit/RetroStream.git
@@ -65,31 +85,33 @@ pnpm install
 
 ### pnpm 11 build-script policy
 
-pnpm 11 blocks dependency lifecycle scripts unless the project explicitly reviews them. RetroStream includes `pnpm-workspace.yaml` allowing build scripts only for `esbuild`, `sharp`, and `workerd`, which are required by the Vite/Next/Cloudflare toolchain.
+pnpm 11 blocks dependency lifecycle scripts unless the project explicitly reviews them. RetroStream's `pnpm-workspace.yaml` allows only the native lifecycle scripts required by this stack: `esbuild` and `workerd`.
 
-If you see `ERR_PNPM_IGNORED_BUILDS`, make sure `pnpm-workspace.yaml` is present in the project root, then run `pnpm install` again. Do not use `dangerouslyAllowAllBuilds`; RetroStream does not need it.
+If you see `ERR_PNPM_IGNORED_BUILDS`, make sure `pnpm-workspace.yaml` is present and run `pnpm install` again. Do not enable all dependency build scripts globally.
 
-Copy the environment template:
+### Local TMDB secret
+
+Cloudflare's Vite integration loads Worker secrets from `.dev.vars` during local development. Copy the committed template:
 
 **PowerShell**
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item .dev.vars.example .dev.vars
 ```
 
 **macOS / Linux**
 
 ```bash
-cp .env.example .env
+cp .dev.vars.example .dev.vars
 ```
 
-Add your TMDB read token:
+Then set:
 
 ```dotenv
 TMDB_READ_TOKEN=your_tmdb_read_access_token
 ```
 
-Cloudflare's local runtime supports both `.env` and `.dev.vars`; use one or the other. Both are ignored by Git.
+`.dev.vars` is ignored by Git. Never commit the real token.
 
 Start RetroStream:
 
@@ -97,42 +119,45 @@ Start RetroStream:
 pnpm dev
 ```
 
-Open the local URL printed by Vinext. The project requests port **5173**.
+Open the local URL printed by Vite. RetroStream requests port **5173**.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
-| `pnpm dev` | Compile RetroStream CSS and start the Vinext development server |
-| `pnpm build` | Compile CSS and create the production Vinext/Cloudflare build |
+| `pnpm dev` | Start the Vite + Cloudflare Worker development server on port 5173 |
+| `pnpm build` | Build the browser assets and Worker deployment output |
+| `pnpm preview` | Preview the latest production build through the Workers runtime |
+| `pnpm deploy` | Build and deploy with Wrangler |
 | `pnpm lint` | Run ESLint |
-| `pnpm check` | Run dependency-free syntax checks and release regression tests |
-| `pnpm test` | Run routing, release-config, watch-domain, and player-controller tests |
-| `node scripts/build-css.mjs` | Rebuild `public/retrostream.css` from `src/styles.css` |
+| `pnpm typecheck` | Run `tsc --noEmit` |
+| `pnpm check` | Run dependency-free syntax checks and regression tests |
+| `pnpm test` | Run client bootstrap, Worker proxy, playback, and release-config tests |
 
 ## Project structure
 
 ```text
 RetroStream/
-├── app/
-│   ├── api/tmdb/route.js     # allowlisted server-side TMDB proxy
-│   ├── layout.tsx            # document metadata, styles, and HTML wrapper
-│   └── page.tsx              # semantic RetroStream page shell
+├── index.html                 # semantic application shell; vanilla client owns its DOM
 ├── public/
-│   ├── carousels.js          # paging, dragging, keyboard controls
-│   ├── favicon.svg
-│   ├── retrostream.js        # discovery, search, details, and episode flows
-│   ├── watch-player.js       # resilient player controller and failover UX
-│   ├── watch-domains.js      # primary + backup VidSrc watch-domain resolver
-│   └── watch-states.css      # fallback/outage player states
-├── scripts/
-│   └── build-css.mjs         # Tailwind/daisyUI compiler
-├── tests/                    # watch-domain/player/release regression tests
+│   └── favicon.svg            # copied as a static asset
 ├── src/
-│   └── styles.css            # RetroStream visual system and responsive CSS
-├── .env.example
+│   ├── main.js                # browser entrypoint
+│   ├── styles.css             # Tailwind/daisyUI + RetroStream visual system
+│   ├── watch-states.css       # playback fallback/outage states
+│   └── app/
+│       ├── carousels.js       # paging, dragging, keyboard controls
+│       ├── retrostream.js     # discovery, search, details, episodes, hash routing
+│       ├── watch-player.js    # resilient player controller and failover UX
+│       └── watch-domains.js   # primary + backup VidSrc domain resolver
+├── worker/
+│   └── index.js               # allowlisted server-side TMDB proxy
+├── tests/                     # bootstrap, Worker, playback, and release regressions
+├── .dev.vars.example          # local Worker secret template
+├── postcss.config.mjs         # Tailwind PostCSS integration used by Vite
 ├── package.json
-├── pnpm-workspace.yaml       # pnpm 11 dependency build allowlist
+├── pnpm-workspace.yaml        # pnpm 11 native build allowlist
+├── tsconfig.json
 ├── vite.config.ts
 └── wrangler.jsonc
 ```
@@ -144,17 +169,18 @@ Internal project/design state such as `.openai/`, `.impeccable/`, `PRODUCT.md`, 
 The browser never contacts TMDB with your API token directly.
 
 1. Browser code calls `/api/tmdb` with an allowlisted TMDB path and approved query parameters.
-2. The Worker reads `TMDB_READ_TOKEN` from its environment.
-3. The Worker calls TMDB with that token.
-4. The browser receives metadata only.
+2. Cloudflare routes `/api/*` to `worker/index.js` before static-asset handling.
+3. The Worker reads `TMDB_READ_TOKEN` from its environment.
+4. The Worker calls TMDB with that token.
+5. The browser receives metadata only.
 
-The proxy rejects paths and query parameters that are outside RetroStream's expected catalog flows.
+The proxy rejects paths and query parameters outside RetroStream's expected catalog flows.
 
 ## How playback works
 
 For movies and TV episodes, RetroStream asks TMDB for external IDs. If a valid IMDb ID is available, RetroStream builds the corresponding VidSrc embed URL and opens it in an iframe.
 
-The preferred watch domain is **`https://dohmwatch.com`**. Before loading a player, RetroStream checks that domain first. If it cannot be reached, the site automatically works through the VidSrc backup network in this order:
+The preferred watch domain is **`https://dohmwatch.com`**. Before loading a player, RetroStream checks that domain first. If it cannot be reached, the site automatically tries these backups in order:
 
 1. `vidsrc2.ru`
 2. `vidsrc.ir`
@@ -166,9 +192,9 @@ The preferred watch domain is **`https://dohmwatch.com`**. Before loading a play
 8. `vidsrc-embed.su`
 9. `vsrc.su`
 
-When a backup is active, the player page tells the viewer that `dohmwatch.com` is temporarily unavailable and warns that the backup may have a slightly worse ad experience. If every watch domain is unreachable, RetroStream replaces the broken player with a clear temporary-outage message and a **Try again** action. The player also exposes **try another watch domain** for provider failures that a cross-origin iframe cannot report reliably to its parent page.
+When a backup is active, RetroStream explains that `dohmwatch.com` is temporarily unavailable and warns that the backup may have a slightly worse ad experience. If every watch domain is unreachable, the player becomes a temporary-outage state with a **Try again** action. Viewers can also choose **try another watch domain**.
 
-The fallback choice is not persisted: every new playback request starts with `dohmwatch.com` again, so the primary domain automatically becomes preferred as soon as it is reachable.
+The fallback choice is not persisted: every new playback starts with `dohmwatch.com` again.
 
 A title appearing in TMDB does **not** guarantee that a stream exists. Availability depends on the external playback provider, title, and region. Embedded third-party players may also include advertising.
 
@@ -184,32 +210,56 @@ A title appearing in TMDB does **not** guarantee that a stream exists. Availabil
 - Carousel arrows disappear or disable at the ends.
 - Dragging suppresses the accidental click that would otherwise open a poster on pointer release.
 
-## Production deployment
+## Cloudflare routing and deployment
 
-RetroStream targets Cloudflare Workers. Set `TMDB_READ_TOKEN` as a production Worker secret rather than committing it to a file.
+`wrangler.jsonc` keeps static assets and backend concerns separate:
 
-The current Vinext Cloudflare workflow supports deployment through `@vinext/cloudflare` after the Worker configuration is in place. See the Vinext and Cloudflare Workers documentation for authentication and deployment commands appropriate to your account.
+- Vite builds `index.html`, CSS, JavaScript, and `public/` assets.
+- SPA fallback serves `index.html` for client navigation that does not match a file.
+- `/api/*` runs the Worker first.
+- `worker/index.js` handles only `/api/tmdb`; unrelated Worker paths return `404`.
 
-## Verification notes
+For production, store the TMDB token as a Worker secret:
 
-The recovered source has been checked with:
+```bash
+pnpm wrangler secret put TMDB_READ_TOKEN
+```
 
-- Node JavaScript syntax parsing across the application files
-- JSON/configuration parsing
-- secret scanning for accidentally committed TMDB values
-- repository hygiene checks for private design/tool state
-- regression checks ensuring CSS is built before local development starts
-- regression checks ensuring required Cloudflare Worker types are declared
-- root App Router page regression checks
-- watch-domain order, URL generation, player interception, and fallback-controller tests
+Then deploy:
 
-A full `pnpm build` could not be rerun in the recovery sandbox because that environment could not reach the npm registry. Run `pnpm install` followed by `pnpm build` in a network-enabled environment before production deployment.
+```bash
+pnpm deploy
+```
+
+The Cloudflare Vite plugin generates the deployment-time Wrangler configuration from the production build.
+
+## Verification
+
+The repository includes regression coverage for:
+
+- vanilla `index.html` as the single frontend shell
+- absence of React/Next/Vinext runtime dependencies
+- Vite + Cloudflare configuration
+- Worker/API routing and TMDB allowlisting
+- pnpm 11 native build policy
+- watch-domain order and URL generation
+- player interception and backup-domain behavior
+- client bootstrap ownership so the hydration race cannot be reintroduced accidentally
+
+For a release candidate, run:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
 
 ## Credits
 
 - [TMDB](https://www.themoviedb.org/) — movie, television, people, and image metadata. RetroStream uses the TMDB API but is not endorsed or certified by TMDB.
 - [VidSrc](https://vidsrc2.ru/vidsrc/docs/) — external playback embeds.
 - [Tailwind CSS](https://tailwindcss.com/) and [daisyUI](https://daisyui.com/) — styling foundations.
-- [Vinext](https://vinext.io/) and [Cloudflare Workers](https://developers.cloudflare.com/workers/) — application/runtime tooling.
+- [Cloudflare Workers](https://developers.cloudflare.com/workers/) and [Vite](https://vite.dev/) — frontend build/runtime integration and backend API runtime.
 
 Third-party services and assets remain subject to their respective terms and licenses.

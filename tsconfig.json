@@ -11,9 +11,8 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
     "types": ["node", "@cloudflare/workers-types"]
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.js"],
-  "exclude": ["node_modules", "dist", ".next"]
+  "include": ["vite.config.ts", "src/**/*.js", "worker/**/*.js", "tests/**/*.mjs"],
+  "exclude": ["node_modules", "dist"]
 }
