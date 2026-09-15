@@ -1,0 +1,6 @@
+# pnpm 11 blocks dependency lifecycle scripts unless they are explicitly reviewed.
+# These three packages are required by the Vite/Next/Cloudflare toolchain.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
