@@ -17,3 +17,14 @@ test('CSS build resolves file URLs with Windows-safe paths', async () => {
   assert.match(source, /fileURLToPath/);
   assert.doesNotMatch(source, /\.pathname/);
 });
+
+test('Vinext Worker entry is configured for Cloudflare dev routing', async () => {
+  const wrangler = await fs.readFile(new URL('wrangler.jsonc', root), 'utf8');
+  assert.match(wrangler, /"main"\s*:\s*"vinext\/server\/fetch-handler"/);
+});
+
+test('Vite excludes the Cloudflare runtime module from client dependency pre-bundling', async () => {
+  const source = await fs.readFile(new URL('vite.config.ts', root), 'utf8');
+  assert.match(source, /optimizeDeps\s*:\s*\{/);
+  assert.match(source, /exclude\s*:\s*\[[^\]]*["']cloudflare:workers["']/s);
+});
