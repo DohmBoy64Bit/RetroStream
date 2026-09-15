@@ -143,6 +143,7 @@ RetroStream/
 │   └── favicon.svg            # copied as a static asset
 ├── src/
 │   ├── main.js                # browser entrypoint
+│   ├── critical.css           # first-paint and route-loading stability
 │   ├── styles.css             # Tailwind/daisyUI + RetroStream visual system
 │   ├── watch-states.css       # playback fallback/outage states
 │   └── app/
