@@ -31,7 +31,7 @@ There is no RetroStream account system. The UI is intentionally simple: open the
 
 ## Stack
 
-RetroStream's product UI is **HTML and vanilla JavaScript**. Vinext and the Cloudflare Vite plugin provide the Worker/App Router runtime used to host the HTML shell and the `/api/tmdb` proxy.
+RetroStream's interactive product UI remains **vanilla JavaScript**, with a minimal Vinext App Router page providing the semantic HTML shell. Vinext and the Cloudflare Vite plugin provide the application runtime and the `/api/tmdb` proxy.
 
 - HTML + vanilla JavaScript
 - Tailwind CSS 4
@@ -106,8 +106,8 @@ Open the local URL printed by Vinext. The project requests port **5173**.
 | `pnpm dev` | Compile RetroStream CSS and start the Vinext development server |
 | `pnpm build` | Compile CSS and create the production Vinext/Cloudflare build |
 | `pnpm lint` | Run ESLint |
-| `pnpm check` | Run dependency-free syntax checks and watch-domain failover tests |
-| `pnpm test` | Run watch-domain and player-controller tests |
+| `pnpm check` | Run dependency-free syntax checks and release regression tests |
+| `pnpm test` | Run routing, release-config, watch-domain, and player-controller tests |
 | `node scripts/build-css.mjs` | Rebuild `public/retrostream.css` from `src/styles.css` |
 
 ## Project structure
@@ -116,8 +116,8 @@ Open the local URL printed by Vinext. The project requests port **5173**.
 RetroStream/
 ├── app/
 │   ├── api/tmdb/route.js     # allowlisted server-side TMDB proxy
-│   ├── layout.tsx            # minimal App Router layout
-│   └── route.js              # serves the RetroStream HTML document
+│   ├── layout.tsx            # document metadata, styles, and HTML wrapper
+│   └── page.tsx              # semantic RetroStream page shell
 ├── public/
 │   ├── carousels.js          # paging, dragging, keyboard controls
 │   ├── favicon.svg
@@ -129,7 +129,6 @@ RetroStream/
 │   └── build-css.mjs         # Tailwind/daisyUI compiler
 ├── tests/                    # watch-domain/player/release regression tests
 ├── src/
-│   ├── shell.js              # semantic HTML shell/navigation
 │   └── styles.css            # RetroStream visual system and responsive CSS
 ├── .env.example
 ├── package.json
@@ -201,6 +200,7 @@ The recovered source has been checked with:
 - repository hygiene checks for private design/tool state
 - regression checks ensuring CSS is built before local development starts
 - regression checks ensuring required Cloudflare Worker types are declared
+- root App Router page regression checks
 - watch-domain order, URL generation, player interception, and fallback-controller tests
 
 A full `pnpm build` could not be rerun in the recovery sandbox because that environment could not reach the npm registry. Run `pnpm install` followed by `pnpm build` in a network-enabled environment before production deployment.
