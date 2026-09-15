@@ -7,10 +7,9 @@ const root = new URL('../', import.meta.url);
 test('pnpm 11 build-script allowlist covers the remaining native toolchain', async () => {
   const yaml = await fs.readFile(new URL('pnpm-workspace.yaml', root), 'utf8');
   assert.match(yaml, /^allowBuilds:\s*$/m);
-  for (const dependency of ['esbuild', 'workerd']) {
+  for (const dependency of ['esbuild', 'sharp', 'workerd']) {
     assert.match(yaml, new RegExp(`^\\s{2}${dependency}: true\\s*$`, 'm'));
   }
-  assert.doesNotMatch(yaml, /^\s{2}sharp: true\s*$/m);
 });
 
 test('Vite is the only frontend runtime and Cloudflare integration', async () => {

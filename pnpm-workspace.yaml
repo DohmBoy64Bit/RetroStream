@@ -2,4 +2,5 @@
 # Vite and Cloudflare Workers require these native build/runtime packages.
 allowBuilds:
   esbuild: true
+  sharp: true
   workerd: true
