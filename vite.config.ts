@@ -1,6 +1,6 @@
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { defineConfig } from "vite";
 
-export default defineConfig({
-  plugins: [cloudflare()],
-});
+export default defineConfig(({ mode }) => ({
+  plugins: mode === "vercel" ? [] : [cloudflare()],
+}));
