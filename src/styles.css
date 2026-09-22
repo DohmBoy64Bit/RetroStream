@@ -87,3 +87,51 @@ html{overflow-x:visible}
   .search-page .filters{grid-template-columns:1fr}
   .search-page #reset-filters{grid-column:auto}
 }
+
+/* Mobile filters: compact two-column control grid with consistent touch targets. */
+@media(max-width:680px){
+  .filters{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    margin:18px 0 22px;
+  }
+  .filters .select{
+    width:100%;
+    min-width:0;
+    min-height:46px;
+    padding-inline:12px 34px;
+  }
+  .filters #reset-filters{
+    width:100%;
+    min-height:46px;
+    justify-content:center;
+    border:1px solid var(--select-border);
+    background:transparent;
+    color:var(--muted);
+    border-radius:6px;
+  }
+  .filters #reset-filters:hover,
+  .filters #reset-filters:focus-visible{
+    color:var(--ink);
+    border-color:var(--border-strong);
+    background:var(--hover-bg);
+  }
+  .search-page .filters{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    margin:0 0 22px;
+  }
+  .search-page #reset-filters{
+    grid-column:1/-1;
+    justify-self:stretch;
+  }
+}
+@media(max-width:340px){
+  .filters{
+    grid-template-columns:1fr;
+  }
+  .search-page #reset-filters{
+    grid-column:auto;
+  }
+}
