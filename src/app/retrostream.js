@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s);
 const main=$('#main');
 installCarousels(main);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const star='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 2.9 6.2 6.8.8-5 4.7 1.4 6.7-6.1-3.4-6.1 3.4 1.4-6.7-5-4.7 6.8-.8z"/></svg>';
+const star='<svg class="lucide lucide-star score-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.12 2.12 0 0 0 1.595 1.16l5.164.75a.53.53 0 0 1 .294.904l-3.736 3.641a2.12 2.12 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.769.559l-4.618-2.428a2.12 2.12 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.559l.883-5.14a2.12 2.12 0 0 0-.611-1.879L2.162 9.792a.53.53 0 0 1 .294-.906l5.165-.75a2.12 2.12 0 0 0 1.595-1.16z"/></svg>';
 const play='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m7 4 14 8-14 8z"/></svg>';
 const info='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v1"/></svg>';
 let imageBase='https://image.tmdb.org/t/p/',genres={movie:[],tv:[]},generation=0,featured=[],featureIndex=0;
@@ -12,7 +12,7 @@ async function api(path,params={}){const url='/api/tmdb?'+new URLSearchParams({p
 const name=m=>m.title||m.name||'Untitled'; const date=m=>(m.release_date||m.first_air_date||'').slice(0,4); const type=m=>m.media_type||(m.title?'movie':'tv');
 const img=(path,size='w500')=>path?imageBase+size+path:'';
 function photo(path,alt,cls='',size='w500',eager=false){const fallback=cls==='feature-photo'?'feature-photo artwork-fallback':size==='w185'?'person-fallback':size==='w300'?'still-fallback':'poster-fallback';return path?`<img class="${cls}" src="${esc(img(path,size))}" alt="${esc(alt)}" loading="${eager?'eager':'lazy'}" ${eager?'fetchpriority="high"':''} onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'${fallback}'}))">`:`<div class="${fallback}" role="img" aria-label="Image unavailable"></div>`;}
-const score=m=>m.vote_count?`<span class="rating">${star}${Number(m.vote_average).toFixed(1)}</span>`:'<span>Not yet rated</span>';
+const score=m=>m.vote_count?`<span class="score-rating">${star}${Number(m.vote_average).toFixed(1)}</span>`:'<span>Not yet rated</span>';
 function cards(items){return items.filter(m=>type(m)!=='person'&&!m.adult).map(m=>`<a class="poster-card" href="#title/${type(m)}/${m.id}" aria-label="${esc(name(m))}, ${date(m)}, ${type(m)==='tv'?'TV series':'movie'}"><div class="poster-wrap">${photo(m.poster_path,name(m))}<span class="poster-score">${score(m)}</span><span class="poster-type">${type(m)==='tv'?'SERIES':'FILM'}</span></div><h3>${esc(name(m))}</h3><p><span>${date(m)||'Release TBA'}</span><span>${esc((genres[type(m)]||[]).find(g=>m.genre_ids?.includes(g.id))?.name||'')}</span></p></a>`).join('');}
 function loading(){return '<div class="loading-screen" role="status"><span class="loading loading-spinner"></span> Loading the collection…</div>';}
 function errorHtml(e){return `<div class="error-box" role="alert"><h2>Couldn't load this content.</h2><p>${esc(e.message)}</p><button class="btn btn-secondary" data-retry>Try again</button></div>`;}
