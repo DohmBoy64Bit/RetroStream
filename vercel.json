@@ -3,5 +3,43 @@
   "framework": "vite",
   "buildCommand": "pnpm build:vercel",
   "outputDirectory": "dist",
-  "installCommand": "pnpm install"
+  "installCommand": "pnpm install",
+  "rewrites": [
+    {
+      "source": "/robots.txt",
+      "destination": "/api/robots"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/movies",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/series",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/new",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/search",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/movie/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/series/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/watch/:path*",
+      "destination": "/index.html"
+    }
+  ]
 }
