@@ -7,7 +7,23 @@
     <meta name="theme-color" content="#141515" />
     <meta
       name="description"
-      content="Discover movies and series. Explore popular titles, find your favorites, and pick your next episode. No account required."
+      content="Discover movies and TV series, explore cast and crew, browse episodes, and find your next great watch on RetroStream."
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="application-name" content="RetroStream" />
+    <meta property="og:site_name" content="RetroStream" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="RetroStream — Discover Movies & TV Series" />
+    <meta
+      property="og:description"
+      content="Discover movies and TV series, explore cast and crew, browse episodes, and find your next great watch on RetroStream."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="RetroStream — Discover Movies & TV Series" />
+    <meta
+      name="twitter:description"
+      content="Discover movies and TV series, explore cast and crew, browse episodes, and find your next great watch on RetroStream."
     />
     <link rel="icon" href="/favicon.svg" />
     <link rel="preconnect" href="https://image.tmdb.org" />
@@ -15,17 +31,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap&display=swap"
     />
     <link rel="stylesheet" href="/src/critical.css" />
     <link rel="stylesheet" href="/src/styles.css" />
     <link rel="stylesheet" href="/src/watch-states.css" />
-    <title>RetroStream — Find your next great watch</title>
+    <title>RetroStream — Discover Movies &amp; TV Series</title>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="masthead">
-      <a href="#home" class="brand" aria-label="RetroStream home">
+      <a href="/" class="brand" aria-label="RetroStream home">
         <svg viewBox="0 0 32 32" aria-hidden="true">
           <rect x="2" y="5" width="28" height="22" rx="6"></rect>
           <path d="m13 10 10 6-10 6z"></path>
@@ -33,10 +49,10 @@
         retro<span>stream</span><i></i>
       </a>
       <nav id="main-nav" aria-label="Main navigation">
-        <a href="#home" data-nav="home">Home</a>
-        <a href="#browse/movie" data-nav="movie">Movies</a>
-        <a href="#browse/tv" data-nav="tv">Series</a>
-        <a href="#latest" data-nav="latest">New &amp; recent</a>
+        <a href="/" data-nav="home">Home</a>
+        <a href="/movies" data-nav="movie">Movies</a>
+        <a href="/series" data-nav="tv">Series</a>
+        <a href="/new" data-nav="latest">New &amp; recent</a>
       </nav>
       <button class="search-launch btn btn-ghost" id="search-launch" aria-label="Search movies and series">
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -61,7 +77,7 @@
       </div>
     </main>
     <footer>
-      <a class="brand footer-brand" href="#home">retro<span>stream</span><i></i></a>
+      <a class="brand footer-brand" href="/">retro<span>stream</span><i></i></a>
       <p>No accounts. Just something good to watch.</p>
       <small>
         This product uses the TMDB API but is not endorsed or certified by TMDB.<br />
