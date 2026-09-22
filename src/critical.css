@@ -5,11 +5,11 @@ body {
 }
 
 body > main {
-  min-height: calc(100svh - 96px);
+  min-height: calc(100svh - 84px);
 }
 
 body > main > .loading-screen {
-  min-height: calc(100svh - 96px);
+  min-height: calc(100svh - 84px);
   display: flex;
   align-items: center;
   justify-content: center;
