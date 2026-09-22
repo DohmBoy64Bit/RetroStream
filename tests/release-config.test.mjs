@@ -29,11 +29,13 @@ test('package removes React and Vinext and uses native Vite lifecycle scripts', 
   assert.match(pkg.scripts.preview, /vite preview/);
 });
 
-test('Wrangler routes API requests to the Worker and static navigation to the SPA', async () => {
+test('Wrangler routes API and SEO endpoints to the Worker and static navigation to the SPA', async () => {
   const wrangler = await fs.readFile(new URL('wrangler.jsonc', root), 'utf8');
   assert.match(wrangler, /"main"\s*:\s*"\.\/worker\/index\.js"/);
   assert.match(wrangler, /"not_found_handling"\s*:\s*"single-page-application"/);
-  assert.match(wrangler, /"run_worker_first"\s*:\s*\[\s*"\/api\/\*"\s*\]/s);
+  assert.match(wrangler, /"\/api\/\*"/);
+  assert.match(wrangler, /"\/robots\.txt"/);
+  assert.match(wrangler, /"\/sitemap\.xml"/);
   assert.match(wrangler, /"compatibility_date"\s*:\s*"2026-05-22"/);
 });
 
