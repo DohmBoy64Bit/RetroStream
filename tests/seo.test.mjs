@@ -26,7 +26,7 @@ test('client router uses History API and route-aware SEO metadata', async () => 
   const source = await fs.readFile(new URL('src/app/retrostream.js', root), 'utf8');
   assert.match(source, /parseRoute\(location\.pathname,location\.search\)/);
   assert.match(source, /window\.addEventListener\('popstate',route\)/);
-  assert.match(source, /history\[['"]?replaceState['"]?\|'pushState'|history\[replace\?'replaceState':'pushState'\]/);
+  assert.match(source, /history\[replace\?'replaceState':'pushState'\]/);
   assert.match(source, /setPageSeo\(/);
   assert.match(source, /mediaSchema\(/);
   assert.doesNotMatch(source, /window\.addEventListener\('hashchange'/);
