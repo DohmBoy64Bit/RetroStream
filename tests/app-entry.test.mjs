@@ -37,8 +37,8 @@ test('client entry starts application logic without discovering critical CSS lat
 test('route loading reserves the viewport so the footer cannot jump into view', async () => {
   const css = await fs.readFile(new URL('src/critical.css', root), 'utf8');
   assert.match(css, /body\s*>\s*main\s*>\s*\.loading-screen\s*\{[^}]*min-height:/s);
-  assert.match(css, /100svh\\s*-\\s*84px/);
-  assert.match(css, /100svh\\s*-\\s*64px\\s*-\\s*env\\(safe-area-inset-top\\)/);
+  assert.match(css, /100svh\s*-\s*84px/);
+  assert.match(css, /100svh\s*-\s*64px\s*-\s*env\(safe-area-inset-top\)/);
 });
 
 test('finished pages reveal as one surface and respect reduced motion', async () => {
