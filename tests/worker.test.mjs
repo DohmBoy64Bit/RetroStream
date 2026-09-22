@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import worker, { handleTmdbRequest } from '../worker/index.js';
+import worker, { handleRobotsRequest, handleSitemapRequest, handleTmdbRequest } from '../worker/index.js';
 
 test('Worker only owns API routes and returns 404 for other requests', async () => {
   const response = await worker.fetch(new Request('https://retrostream.test/not-an-api'), {});
@@ -46,3 +46,47 @@ test('TMDB proxy forwards only allowed query params and keeps the token server-s
   assert.equal(upstream.url.searchParams.get('include_adult'), 'false');
   assert.equal(upstream.init.headers.Authorization, 'Bearer secret-token');
 });
+
+test('robots endpoint allows the site, blocks API crawling, and advertises the sitemap', async () => {
+  const response = handleRobotsRequest(new Request('https://retrostream.test/robots.txt'));
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type'), /text\/plain/);
+  const body = await response.text();
+  assert.match(body, /User-agent: \*/);
+  assert.match(body, /Allow: \/$/m);
+  assert.match(body, /Disallow: \/api\//);
+  assert.match(body, /Sitemap: https:\/\/retrostream\.test\/sitemap\.xml/);
+});
+
+test('sitemap contains canonical discovery routes without requiring TMDB', async () => {
+  const response = await handleSitemapRequest(
+    new Request('https://retrostream.test/sitemap.xml'),
+    {},
+  );
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type'), /application\/xml/);
+  const body = await response.text();
+  for (const path of ['/', '/movies', '/series', '/new']) {
+    assert.match(body, new RegExp(`<loc>https://retrostream\\.test${path === '/' ? '\\/' : path.replaceAll('/', '\\/')}</loc>`));
+  }
+  assert.doesNotMatch(body, /\/search|\/watch\//);
+});
+
+test('sitemap adds popular movie and series URLs when the catalog token is available', async () => {
+  const fetchImpl = async url => {
+    const pathname = new URL(url).pathname;
+    if (pathname.endsWith('/movie/popular')) {
+      return Response.json({ results: [{ id: 348, title: 'Alien', adult: false }] });
+    }
+    return Response.json({ results: [{ id: 66732, name: 'Stranger Things', adult: false }] });
+  };
+  const response = await handleSitemapRequest(
+    new Request('https://retrostream.test/sitemap.xml'),
+    { TMDB_READ_TOKEN: 'token' },
+    fetchImpl,
+  );
+  const body = await response.text();
+  assert.match(body, /https:\/\/retrostream\.test\/movie\/348\/alien/);
+  assert.match(body, /https:\/\/retrostream\.test\/series\/66732\/stranger-things/);
+});
+
