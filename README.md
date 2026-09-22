@@ -154,6 +154,8 @@ RetroStream/
 │   └── app/
 │       ├── carousels.js       # paging, dragging, keyboard controls
 │       ├── retrostream.js     # discovery, search, details, episodes, clean URL routing
+│       ├── routing.js         # crawlable URL builders + legacy hash migration
+│       ├── seo.js             # route metadata, canonicals, social tags, JSON-LD
 │       ├── watch-player.js    # resilient player controller and failover UX
 │       └── watch-domains.js   # primary + backup VidSrc domain resolver
 ├── worker/
@@ -242,7 +244,7 @@ A title appearing in TMDB does **not** guarantee that a stream exists. Availabil
 - Vite builds `index.html`, CSS, JavaScript, and `public/` assets.
 - SPA fallback serves `index.html` for client navigation that does not match a file.
 - `/api/*`, `/robots.txt`, and `/sitemap.xml` run the Worker first.
-- `worker/index.js` handles only `/api/tmdb`; unrelated Worker paths return `404`.
+- `worker/index.js` handles `/api/tmdb`, `/robots.txt`, and `/sitemap.xml`; unrelated Worker-first paths return `404`.
 
 For production, store the TMDB token as a Worker secret:
 
