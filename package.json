@@ -13,7 +13,7 @@
     "deploy": "pnpm run build && wrangler deploy",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "check": "node --check src/main.js && node --check src/app/retrostream.js && node --check src/app/routing.js && node --check src/app/seo.js && node --check src/app/carousels.js && node --check src/app/watch-domains.js && node --check src/app/watch-player.js && node --check worker/index.js && node --test tests/app-entry.test.mjs tests/routing.test.mjs tests/seo.test.mjs tests/watch-domains.test.mjs tests/watch-player.test.mjs tests/worker.test.mjs tests/release-config.test.mjs",
+    "check": "node --check src/main.js && node --check api/tmdb.js && node --check api/robots.js && node --check api/sitemap.js && node --check src/app/retrostream.js && node --check src/app/routing.js && node --check src/app/seo.js && node --check src/app/carousels.js && node --check src/app/watch-domains.js && node --check src/app/watch-player.js && node --check worker/index.js && node --test tests/app-entry.test.mjs tests/routing.test.mjs tests/seo.test.mjs tests/watch-domains.test.mjs tests/watch-player.test.mjs tests/worker.test.mjs tests/release-config.test.mjs",
     "test": "node --test tests/app-entry.test.mjs tests/routing.test.mjs tests/seo.test.mjs tests/watch-domains.test.mjs tests/watch-player.test.mjs tests/worker.test.mjs tests/release-config.test.mjs"
   },
   "devDependencies": {
