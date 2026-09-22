@@ -32,7 +32,7 @@
         </svg>
         retro<span>stream</span><i></i>
       </a>
-      <nav aria-label="Main navigation">
+      <nav id="main-nav" aria-label="Main navigation">
         <a href="#home" data-nav="home">Home</a>
         <a href="#browse/movie" data-nav="movie">Movies</a>
         <a href="#browse/tv" data-nav="tv">Series</a>
@@ -45,6 +45,14 @@
         </svg>
         <span>Search the catalog</span>
         <kbd>/</kbd>
+      </button>
+      <button class="mobile-menu-toggle btn btn-ghost" id="mobile-menu-toggle" aria-label="Open menu" aria-controls="main-nav" aria-expanded="false">
+        <svg class="menu-icon menu-icon-open" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
+        <svg class="menu-icon menu-icon-close" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m6 6 12 12M18 6 6 18"></path>
+        </svg>
       </button>
     </header>
     <main id="main" tabindex="-1" aria-live="polite">
