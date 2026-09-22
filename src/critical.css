@@ -35,7 +35,7 @@ body > main > :not(.loading-screen) {
 @media (max-width: 680px) {
   body > main,
   body > main > .loading-screen {
-    min-height: calc(100svh - 100px - env(safe-area-inset-top));
+    min-height: calc(100svh - 64px - env(safe-area-inset-top));
   }
 }
 
