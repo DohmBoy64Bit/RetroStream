@@ -28,6 +28,7 @@ There is no RetroStream account system. Open the site, find something to watch, 
 - **Playback integration:** movies and aired episodes resolve IMDb IDs through TMDB and use VidSrc embeds through `dohmwatch.com`, with automatic backup-domain failover.
 - **Responsive design:** desktop, tablet, and mobile layouts with keyboard focus and reduced-motion support.
 - **Server-side TMDB access:** the TMDB read token stays in the Cloudflare Worker environment and is never exposed in browser JavaScript.
+- **Search-engine friendly navigation:** crawlable History API routes, route-specific titles/descriptions/canonicals, structured data, robots directives, and a generated sitemap.
 
 ## Architecture
 
@@ -38,7 +39,7 @@ Browser
   └─ Vite client
       ├─ index.html
       ├─ src/main.js
-      ├─ RetroStream UI + hash routing
+      ├─ RetroStream UI + History API routing
       └─ player/domain controller
              │
              └─ fetch /api/tmdb
@@ -139,6 +140,10 @@ Open the local URL printed by Vite. RetroStream requests port **5173**.
 ```text
 RetroStream/
 ├── index.html                 # semantic application shell; vanilla client owns its DOM
+├── api/
+│   ├── robots.js              # Vercel robots.txt endpoint
+│   ├── sitemap.js             # Vercel sitemap endpoint
+│   └── tmdb.js                # Vercel TMDB proxy adapter
 ├── public/
 │   └── favicon.svg            # copied as a static asset
 ├── src/
@@ -148,7 +153,7 @@ RetroStream/
 │   ├── watch-states.css       # playback fallback/outage states
 │   └── app/
 │       ├── carousels.js       # paging, dragging, keyboard controls
-│       ├── retrostream.js     # discovery, search, details, episodes, hash routing
+│       ├── retrostream.js     # discovery, search, details, episodes, clean URL routing
 │       ├── watch-player.js    # resilient player controller and failover UX
 │       └── watch-domains.js   # primary + backup VidSrc domain resolver
 ├── worker/
@@ -164,6 +169,25 @@ RetroStream/
 ```
 
 Internal project/design state such as `.openai/`, `.impeccable/`, `PRODUCT.md`, and `DESIGN.md` is intentionally excluded from the public repository.
+
+
+## Search engine optimization
+
+RetroStream uses normal, crawlable URLs instead of fragment-only application routes:
+
+- `/movies` — movie discovery
+- `/series` — TV and series discovery
+- `/new` — new and recent releases
+- `/movie/:id/:slug` — movie details
+- `/series/:id/:slug` — series details
+- `/search` — catalog search (marked `noindex`)
+- `/watch/*` — playback routes (marked `noindex`)
+
+The client updates the document title, meta description, canonical URL, Open Graph/Twitter metadata, and JSON-LD when the route changes. Movie and series detail pages expose `Movie` or `TVSeries` structured data using the loaded TMDB metadata.
+
+`/robots.txt` and `/sitemap.xml` are generated from the request origin so the same deployment works on Cloudflare, Vercel, preview domains, and custom domains without hard-coding a hostname. The sitemap always includes the main discovery pages and, when the TMDB token is available, also includes current popular movie and series detail URLs.
+
+Legacy `#home`, `#browse/...`, `#title/...`, and `#watch/...` links are migrated in-place to their clean URL equivalents so old shared links keep working.
 
 ## How catalog requests work
 
@@ -217,7 +241,7 @@ A title appearing in TMDB does **not** guarantee that a stream exists. Availabil
 
 - Vite builds `index.html`, CSS, JavaScript, and `public/` assets.
 - SPA fallback serves `index.html` for client navigation that does not match a file.
-- `/api/*` runs the Worker first.
+- `/api/*`, `/robots.txt`, and `/sitemap.xml` run the Worker first.
 - `worker/index.js` handles only `/api/tmdb`; unrelated Worker paths return `404`.
 
 For production, store the TMDB token as a Worker secret:
@@ -246,6 +270,7 @@ The repository includes regression coverage for:
 - watch-domain order and URL generation
 - player interception and backup-domain behavior
 - client bootstrap ownership so the hydration race cannot be reintroduced accidentally
+- crawlable History API routes, SEO metadata, robots.txt, and sitemap generation
 
 For a release candidate, run:
 
