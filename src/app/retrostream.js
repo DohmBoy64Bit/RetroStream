@@ -29,15 +29,125 @@ function errorHtml(e){return `<div class="error-box" role="alert"><h2>Couldn't l
 function feature(m,detail=false){return `<section class="feature ${detail?'detail-hero':''}">${photo(m.backdrop_path,'','feature-photo','w1280',true)}<div class="feature-copy"><h1>${esc(name(m))}</h1><div class="meta">${score(m)}<span>${date(m)}</span><span>${m.runtime?Math.floor(m.runtime/60)+'h '+m.runtime%60+'m':type(m)==='tv'?(m.number_of_seasons?m.number_of_seasons+' seasons':'TV series'):'Movie'}</span><span>${esc((m.genres||genres[type(m)]?.filter(g=>m.genre_ids?.includes(g.id))||[]).slice(0,2).map(g=>g.name).join(' · '))}</span></div><p>${esc(m.overview||'Explore the cast, details, and available episodes.')}</p><div class="actions"><a class="btn btn-primary" href="${type(m)==='tv'?titlePath('tv',m.id,name(m))+'?episodes=1':watchPath('movie',m.id)}">${play}${type(m)==='tv'?'Choose episode':'Watch movie'}</a>${detail?'':`<a class="btn btn-secondary" href="${titlePath(type(m),m.id,name(m))}">${info}More info</a>`}</div></div>${detail?'':`<div class="feature-counter" aria-label="Featured titles" role="group">${featured.map((f,i)=>`<button data-feature="${i}" class="${i===featureIndex?'active':''}" aria-label="Show featured title ${i+1} of ${featured.length}: ${esc(name(f))}" aria-pressed="${i===featureIndex}" ${i===featureIndex?'aria-current="true"':''}></button>`).join('')}</div>`}</section>`;}
 function section(title,items,href,cta,extra=''){return `<section class="section"><div class="section-head"><div class="section-left"><h2>${title}</h2>${extra}</div><a href="${href}">${cta}</a></div><div class="shelf">${cards(items.slice(0,12))}</div></section>`;}
 async function home(g){const results=await Promise.allSettled([api('trending/all/week'),api('movie/popular'),api('tv/popular'),api('movie/now_playing')]);if(g!==generation)return;const lists=results.map(r=>r.status==='fulfilled'?r.value.results:[]);if(!lists.some(l=>l.length))throw Error('Unable to reach TMDB. Please try again.');featured=lists[0].filter(m=>m.backdrop_path&&m.overview&&m.media_type!=='person').slice(0,4);featureIndex=0;main.innerHTML=(featured.length?`<div id="featured">${feature(featured[0])}</div>`:'')+`<div class="content home-content"><div class="genre-strip" aria-label="Browse by genre">${['Action','Comedy','Science Fiction','Thriller','Animation','Drama','Horror','Adventure'].map(n=>{const x=genres.movie.find(g=>g.name===n);return x?`<a href="/movies?genre=${x.id}">${esc(n)}</a>`:'';}).join('')}</div>${section('Trending this week',lists[0],'/movies','Browse all movies',`<div class="trending-toggle" aria-label="Trending category"><button class="active" data-trending="all">All</button><button data-trending="movie">Movies</button><button data-trending="tv">Series</button></div>`)}${section('Popular picks',lists[1],'/movies','Browse all movies')}${section('Trending Series',lists[2],'/series','Browse all series')}${section('Now Playing',lists[3],'/new','Browse all movies')}</div>`;main.querySelectorAll('[data-trending]').forEach(b=>b.onclick=()=>{main.querySelectorAll('[data-trending]').forEach(x=>x.classList.toggle('active',x===b));b.closest('.section').querySelector('.shelf').innerHTML=cards(lists[0].filter(m=>b.dataset.trending==='all'||type(m)===b.dataset.trending).slice(0,12));});}
-function filterMarkup(t,p,search=false){const year=new Date().getFullYear();return `<div class="filters"><label class="sr-only" for="media">Media type</label><select id="media" class="select"><option value="movie" ${t==='movie'?'selected':''}>Movies</option><option value="tv" ${t==='tv'?'selected':''}>TV & series</option>${search?`<option value="all" ${t==='all'?'selected':''}>Movies & series</option>`:''}</select><label class="sr-only" for="genre">Genre</label><select id="genre" class="select"><option value="">All genres</option>${[...new Map([...(genres[t]||genres.movie),...(t==='all'?genres.tv:[])].map(g=>[g.id,g])).values()].map(x=>`<option value="${x.id}" ${p.get('genre')==x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select><label class="sr-only" for="year">Release year</label><select id="year" class="select"><option value="">Any year</option>${Array.from({length:year-1949},(_,i)=>year-i).map(y=>`<option ${p.get('year')==y?'selected':''}>${y}</option>`).join('')}</select><label class="sr-only" for="rating">Minimum TMDB rating</label><select id="rating" class="select"><option value="">Any rating</option>${[9,8,7,6].map(v=>`<option value="${v}" ${p.get('rating')==v?'selected':''}>${v}+ TMDB rating</option>`).join('')}</select>${search?'':`<label class="sr-only" for="sort">Sort by</label><select id="sort" class="select"><option value="popularity.desc">Most popular</option><option value="vote_average.desc" ${p.get('sort')==='vote_average.desc'?'selected':''}>Top rated</option><option value="primary_release_date.desc" ${p.get('sort')==='primary_release_date.desc'?'selected':''}>Latest releases</option></select>`}<button class="btn btn-ghost" id="reset-filters">Reset</button></div>`;}
-async function browse(t,p,g,search=false,latest=false){t=t||'movie';let query=p.get('q')||'';const searchTerm=query.trim();main.innerHTML=`<div class="content${search?' search-page':''}"><h1 class="browse-title">${search?'Find your next great watch.':latest?'New and recent releases.':t==='tv'?'Your next obsession.':'A whole world of movies.'}</h1>${search?`<form class="search-form" id="search-form"><label class="sr-only" for="query">Search titles or IMDb IDs</label><input class="input" id="query" placeholder="Search a title or IMDb ID…" aria-describedby="search-hint" value="${esc(query)}" autocomplete="off" maxlength="180" inputmode="search" enterkeyhint="search"><button class="btn btn-primary">Search</button></form><p class="search-hint" id="search-hint">Search by movie, series, or IMDb ID.</p>`:''}${filterMarkup(t,latest&&!p.has('sort')?new URLSearchParams({...Object.fromEntries(p),sort:'primary_release_date.desc'}):p,search)}<p class="result-summary" aria-live="polite" id="summary"></p><div id="results" class="grid-results"></div><div id="results-state"></div><button id="more" class="btn btn-secondary load-more" hidden>Load more</button></div>`;
-let page=0,total=1,found=0,busy=false;const update=(replace=false)=>{const q=new URLSearchParams();if(search)q.set('q',$('#query').value);for(const k of ['genre','year','rating','sort'])if($('#'+k)?.value)q.set(k,$('#'+k).value);let path;if(search){q.set('type',$('#media').value);path='/search';}else if(latest){q.set('type',$('#media').value);path='/new';}else path=browsePath($('#media').value);navigate(withParams(path,q),{replace});};
+function filterMarkup(t,p,search=false){
+const year=new Date().getFullYear();
+const media=`<label class="sr-only" for="media">Media type</label><select id="media" class="select"><option value="movie" ${t==='movie'?'selected':''}>Movies</option><option value="tv" ${t==='tv'?'selected':''}>TV & series</option>${search?`<option value="all" ${t==='all'?'selected':''}>Movies & series</option>`:''}</select>`;
+const genre=`<label class="sr-only" for="genre">Genre</label><select id="genre" class="select"><option value="">All genres</option>${[...new Map([...(genres[t]||genres.movie),...(t==='all'?genres.tv:[])].map(g=>[g.id,g])).values()].map(x=>`<option value="${x.id}" ${p.get('genre')==x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`;
+const releaseYear=`<label class="sr-only" for="year">Release year</label><select id="year" class="select"><option value="">Any year</option>${Array.from({length:year-1949},(_,i)=>year-i).map(y=>`<option ${p.get('year')==y?'selected':''}>${y}</option>`).join('')}</select>`;
+const rating=`<label class="sr-only" for="rating">Minimum TMDB rating</label><select id="rating" class="select"><option value="">Any rating</option>${[9,8,7,6].map(v=>`<option value="${v}" ${p.get('rating')==v?'selected':''}>${v}+ TMDB rating</option>`).join('')}</select>`;
+const reset='<button class="btn btn-ghost" id="reset-filters">Reset</button>';
+if(search)return `<div class="filters search-filters">${media}<button type="button" class="btn btn-ghost filter-toggle" id="filter-toggle" aria-expanded="false" aria-controls="advanced-filters"><span>Filters</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></button><div class="search-advanced-filters" id="advanced-filters">${genre}${releaseYear}${rating}${reset}</div></div>`;
+const sort=`<label class="sr-only" for="sort">Sort by</label><select id="sort" class="select"><option value="popularity.desc">Most popular</option><option value="vote_average.desc" ${p.get('sort')==='vote_average.desc'?'selected':''}>Top rated</option><option value="primary_release_date.desc" ${p.get('sort')==='primary_release_date.desc'?'selected':''}>Latest releases</option></select>`;
+return `<div class="filters">${media}${genre}${releaseYear}${rating}${sort}${reset}</div>`;
+}
+async function browse(t,p,g,search=false,latest=false){
+t=t||'movie';
+let query=p.get('q')||'';
+let activeSearchTerm=query.trim(),activeSearchType=t,activeSearchParams=new URLSearchParams(p);
+main.innerHTML=`<div class="content${search?' search-page':''}"><h1 class="browse-title">${search?'Find your next great watch.':latest?'New and recent releases.':t==='tv'?'Your next obsession.':'A whole world of movies.'}</h1>${search?`<form class="search-form" id="search-form"><label class="sr-only" for="query">Search titles or IMDb IDs</label><input class="input" id="query" placeholder="Search a title or IMDb ID…" aria-describedby="search-hint" value="${esc(query)}" autocomplete="off" maxlength="180" inputmode="search" enterkeyhint="search"><button class="btn btn-primary">Search</button></form><p class="search-hint" id="search-hint">Search by movie, series, or IMDb ID.</p>`:''}${filterMarkup(t,latest&&!p.has('sort')?new URLSearchParams({...Object.fromEntries(p),sort:'primary_release_date.desc'}):p,search)}<p class="result-summary" role="status" aria-live="polite" aria-atomic="true" id="summary"></p><div id="results" class="grid-results" aria-busy="false"></div><div id="results-state"></div><button id="more" class="btn btn-secondary load-more" hidden>Load more</button></div>`;
+
+let page=0,total=1,found=0,busy=false,resultRevision=0;
+const searchParams=()=>{const q=new URLSearchParams();const raw=$('#query')?.value||'';if(raw.trim())q.set('q',raw);for(const k of ['genre','year','rating'])if($('#'+k)?.value)q.set(k,$('#'+k).value);q.set('type',$('#media')?.value||'all');return q;};
+const update=(replace=false)=>{const q=new URLSearchParams();if(search){const raw=$('#query').value;if(raw.trim())q.set('q',raw);}for(const k of ['genre','year','rating','sort'])if($('#'+k)?.value)q.set(k,$('#'+k).value);let path;if(search){q.set('type',$('#media').value);path='/search';}else if(latest){q.set('type',$('#media').value);path='/new';}else path=browsePath($('#media').value);navigate(withParams(path,q),{replace});};
+
 for(const id of ['media','genre','year','rating','sort'])if($('#'+id))$('#'+id).onchange=()=>update();
-$('#reset-filters').onclick=()=>{if(search){const q=new URLSearchParams();if(query)q.set('q',query);navigate(withParams('/search',q));}else navigate(latest?'/new':browsePath(t));};
-if(search){$('#query').focus();$('#query').setSelectionRange(query.length,query.length);$('#search-form').onsubmit=e=>{e.preventDefault();update();};let timer;$('#query').oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>{if($('#query')&&$('#query').value.trim().length>=2)update(true);},200);};if(!searchTerm){$('#summary').textContent='';$('#query').focus();return;}}
-async function more(){if(busy||page>=total||g!==generation)return;busy=true;$('#more').disabled=true;$('#results-state').innerHTML=loading();try{let d;page++;if(search&&/^tt\d+$/.test(searchTerm)){const x=await api('find/'+searchTerm,{external_source:'imdb_id'});d={results:[...x.movie_results.map(m=>({...m,media_type:'movie'})),...x.tv_results.map(m=>({...m,media_type:'tv'}))],total_pages:1};}else if(search)d=await api('search/'+(t==='all'?'multi':t),{query:searchTerm,page});else {const params={page,sort_by:p.get('sort')||(latest?'primary_release_date.desc':'popularity.desc'),'vote_count.gte':latest?'5':'100'};if(t==='tv'&&params.sort_by==='primary_release_date.desc')params.sort_by='first_air_date.desc';params[t==='tv'?'first_air_date.lte':'primary_release_date.lte']=new Date().toISOString().slice(0,10);if(p.get('genre'))params.with_genres=p.get('genre');if(p.get('year'))params[t==='tv'?'first_air_date_year':'primary_release_year']=p.get('year');if(p.get('rating'))params['vote_average.gte']=p.get('rating');d=await api('discover/'+t,params);}
-if(g!==generation)return;total=Math.min(d.total_pages||1,500);let items=d.results.map(m=>({...m,media_type:m.media_type||(t==='all'?type(m):t)})).filter(m=>['movie','tv'].includes(type(m))&&!m.adult);if(search)items=items.filter(m=>(!p.get('genre')||m.genre_ids?.includes(Number(p.get('genre'))))&&(!p.get('year')||date(m)===p.get('year'))&&(!p.get('rating')||m.vote_average>=Number(p.get('rating')))&&(t==='all'||type(m)===t));found+=items.length;$('#results').insertAdjacentHTML('beforeend',cards(items));$('#summary').textContent=search?`${found} matching title${found===1?'':'s'} loaded${searchTerm?' for “'+searchTerm+'”':''}`:`${found} titles · ${t==='tv'?'TV & series':'Movies'}`;$('#results-state').innerHTML=found?'':`<div class="empty"><h2>No matching titles ${page<total?'on this page':'found'}.</h2><p>${page<total?'Load more results or widen your filters.':'Try another title or reset your filters.'}</p></div>`;$('#more').hidden=page>=total;}catch(e){if(g===generation){page--;$('#results-state').innerHTML=errorHtml(e);$('#results-state [data-retry]').onclick=more;}}finally{busy=false;if(g===generation)$('#more').disabled=false;}}
-$('#more').onclick=more;await more();}
+
+const filterToggle=$('#filter-toggle');
+if(filterToggle){
+const filterRoot=$('.search-filters');
+const setFiltersOpen=open=>{filterRoot.classList.toggle('filters-open',open);filterToggle.setAttribute('aria-expanded',String(open));};
+setFiltersOpen(['genre','year','rating'].some(id=>$('#'+id)?.value)&&matchMedia('(max-width:680px)').matches);
+filterToggle.onclick=()=>setFiltersOpen(filterToggle.getAttribute('aria-expanded')!=='true');
+}
+
+$('#reset-filters').onclick=()=>{if(search){const q=new URLSearchParams();const raw=$('#query')?.value||query;if(raw.trim())q.set('q',raw);navigate(withParams('/search',q));}else navigate(latest?'/new':browsePath(t));};
+
+async function more(){
+const revision=resultRevision;
+if(busy||page>=total||g!==generation)return;
+busy=true;
+const nextPage=page+1;
+$('#more').disabled=true;
+$('#results').setAttribute('aria-busy','true');
+$('#results-state').innerHTML=search?'<div class="search-loading" aria-hidden="true"><span class="loading loading-spinner"></span></div>':loading();
+const currentQuery=search?activeSearchTerm:'';
+const currentType=search?activeSearchType:t;
+const currentParams=search?activeSearchParams:p;
+try{
+let d;
+if(search&&/^tt\d+$/.test(currentQuery)){
+const x=await api('find/'+currentQuery,{external_source:'imdb_id'});
+d={results:[...x.movie_results.map(m=>({...m,media_type:'movie'})),...x.tv_results.map(m=>({...m,media_type:'tv'}))],total_pages:1};
+}else if(search)d=await api('search/'+(currentType==='all'?'multi':currentType),{query:currentQuery,page:nextPage});
+else{
+const params={page:nextPage,sort_by:p.get('sort')||(latest?'primary_release_date.desc':'popularity.desc'),'vote_count.gte':latest?'5':'100'};
+if(t==='tv'&&params.sort_by==='primary_release_date.desc')params.sort_by='first_air_date.desc';
+params[t==='tv'?'first_air_date.lte':'primary_release_date.lte']=new Date().toISOString().slice(0,10);
+if(p.get('genre'))params.with_genres=p.get('genre');
+if(p.get('year'))params[t==='tv'?'first_air_date_year':'primary_release_year']=p.get('year');
+if(p.get('rating'))params['vote_average.gte']=p.get('rating');
+d=await api('discover/'+t,params);
+}
+if(g!==generation||revision!==resultRevision)return;
+page=nextPage;
+total=Math.min(d.total_pages||1,500);
+let items=d.results.map(m=>({...m,media_type:m.media_type||(currentType==='all'?type(m):currentType)})).filter(m=>['movie','tv'].includes(type(m))&&!m.adult);
+if(search)items=items.filter(m=>(!currentParams.get('genre')||m.genre_ids?.includes(Number(currentParams.get('genre'))))&&(!currentParams.get('year')||date(m)===currentParams.get('year'))&&(!currentParams.get('rating')||m.vote_average>=Number(currentParams.get('rating')))&&(currentType==='all'||type(m)===currentType));
+found+=items.length;
+$('#results').insertAdjacentHTML('beforeend',cards(items));
+$('#summary').textContent=search?`${found} matching title${found===1?'':'s'} loaded${currentQuery?' for “'+currentQuery+'”':''}`:`${found} titles · ${t==='tv'?'TV & series':'Movies'}`;
+$('#results-state').innerHTML=found?'':`<div class="empty"><h2>No matching titles ${page<total?'on this page':'found'}.</h2><p>${page<total?'Load more results or widen your filters.':'Try another title or reset your filters.'}</p></div>`;
+$('#more').hidden=page>=total;
+}catch(e){
+if(g===generation&&revision===resultRevision){
+$('#results-state').innerHTML=errorHtml(e);
+$('#results-state [data-retry]').onclick=more;
+}
+}finally{
+if(g===generation&&revision===resultRevision){
+busy=false;
+$('#more').disabled=false;
+$('#results').setAttribute('aria-busy','false');
+}
+}
+}
+
+const refreshSearch=async(force=false)=>{
+const input=$('#query');
+if(!input)return;
+const raw=input.value,term=raw.trim();
+query=raw;
+const q=searchParams();
+history.replaceState(null,'',withParams('/search',q));
+activeSearchTerm=term;
+activeSearchType=$('#media').value;
+activeSearchParams=q;
+resultRevision++;
+page=0;total=1;found=0;busy=false;
+$('#results').innerHTML='';
+$('#results-state').innerHTML='';
+$('#more').hidden=true;
+if(!term||(!force&&term.length<2)){
+$('#summary').textContent='';
+$('#results').setAttribute('aria-busy','false');
+return;
+}
+$('#summary').textContent='Searching…';
+await more();
+};
+
+if(search){
+$('#query').focus();
+$('#query').setSelectionRange(query.length,query.length);
+$('#search-form').onsubmit=e=>{e.preventDefault();refreshSearch(true);};
+let timer;
+$('#query').oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>refreshSearch(false),350);};
+}
+
+$('#more').onclick=more;
+if(search&&!activeSearchTerm){$('#summary').textContent='';return;}
+await more();
+}
 async function title(t,id,p,g){const m=await api(t+'/'+id,{append_to_response:'credits,external_ids'});if(g!==generation)return;m.media_type=t;const canonical=titlePath(t,id,name(m));if(location.pathname!==canonical)history.replaceState(null,'',canonical+location.search);const shareImage=m.backdrop_path?img(m.backdrop_path,'w1280'):m.poster_path?img(m.poster_path,'w780'):'';const year=date(m);setPageSeo({title:`${name(m)}${year?' ('+year+')':''} — ${t==='tv'?'TV Series':'Movie'} | RetroStream`,description:m.overview||`Explore cast, details, ratings, and ${t==='tv'?'episodes':'movie information'} for ${name(m)} on RetroStream.`,canonicalPath:canonical,image:shareImage,imageAlt:`${name(m)} ${t==='tv'?'TV series':'movie'} artwork`,type:t==='tv'?'video.tv_show':'video.movie',schema:mediaSchema(m,t,canonical,shareImage)});main.innerHTML=`${feature(m,true)}<div class="content"><a class="back-link" href="${browsePath(t)}">&larr; Back to ${t==='tv'?'series':'movies'}</a><div class="detail-columns"><div>${t==='tv'?'<section id="episodes"><div class="section-head"><h2>Episodes</h2><label><span class="sr-only">Select season</span><select class="select" id="season"></select></label></div><div id="episode-list"></div></section>':''}<section><div class="section-head"><h2>The people behind it</h2></div><div class="cast">${(m.credits?.cast||[]).slice(0,15).map(c=>`<div class="cast-person">${photo(c.profile_path,c.name,'','w185')}<h3>${esc(c.name)}</h3><p>${esc(c.character)}</p></div>`).join('')||'<p>Cast information is not available.</p>'}</div><div class="section-head"><h2>Crew</h2></div><div class="cast">${(m.credits?.crew||[]).filter(c=>['Director','Screenplay','Writer','Executive Producer','Director of Photography','Original Music Composer'].includes(c.job)).slice(0,14).map(c=>`<div class="cast-person"><h3>${esc(c.name)}</h3><p>${esc(c.job)}</p></div>`).join('')||'<p>Crew information is not available.</p>'}</div></section></div><aside class="facts"><dl><dt>Genres</dt><dd>${esc(m.genres?.map(g=>g.name).join(', ')||'Not listed')}</dd><dt>Original title</dt><dd>${esc(m.original_title||m.original_name)}</dd><dt>Status</dt><dd>${esc(m.status)}</dd><dt>${t==='tv'?'Created by':'Directed by'}</dt><dd>${esc((t==='tv'?m.created_by||[]:m.credits?.crew?.filter(c=>c.job==='Director')||[]).map(c=>c.name).join(', ')||'Not listed')}</dd><dt>TMDB audience rating</dt><dd>${Number(m.vote_average).toFixed(1)} / 10 · ${Number(m.vote_count).toLocaleString()} votes</dd><dt>Production</dt><dd>${esc(m.production_companies?.map(c=>c.name).join(', ')||'Not listed')}</dd></dl></aside></div></div>`;
 if(t==='tv'){const seasons=(m.seasons||[]).filter(s=>s.episode_count>0);$('#season').innerHTML=seasons.map(s=>`<option value="${s.season_number}">${esc(s.name)} · ${s.episode_count} episodes</option>`).join('');const first=seasons.find(s=>s.season_number>0)||seasons[0];if(first){$('#season').value=first.season_number;let ticket=0;const load=async()=>{const current=++ticket;$('#episode-list').innerHTML=loading();try{const season=await api(`tv/${id}/season/${$('#season').value}`);if(g!==generation||current!==ticket)return;$('#episode-list').innerHTML=episodeRows(m,season);}catch(e){if(g===generation&&current===ticket){$('#episode-list').innerHTML=errorHtml(e);$('#episode-list [data-retry]').onclick=load;}}};$('#season').onchange=load;await load();}else $('#episode-list').innerHTML='<p>No episodes are available yet.</p>';if(g===generation&&p.has('episodes'))$('#episodes')?.scrollIntoView();}}
 function episodeRows(m,s){return s.episodes.map(e=>{const available=e.air_date&&e.air_date<=new Date().toISOString().slice(0,10);return `<${available?'a':'div'} ${available?`href="${watchPath('tv',m.id,s.season_number,e.episode_number)}"`:''} class="episode"><span class="number">${e.episode_number}</span>${photo(e.still_path,e.name,'','w300')}<div><h3>${esc(e.name)}</h3><p>${esc(e.overview||'Episode description not available.')}</p></div><span class="episode-time">${available?(e.runtime?e.runtime+' min':'Watch'):e.air_date?'Airs '+esc(e.air_date):'Coming soon'}</span></${available?'a':'div'}>`;}).join('');}
