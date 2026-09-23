@@ -44,3 +44,14 @@ test('Vercel serves clean SPA routes and SEO endpoints', async () => {
   assert.equal(rewrites.get('/series/:path*'), '/index.html');
   assert.equal(rewrites.get('/watch/:path*'), '/index.html');
 });
+
+
+test('temporary route failures preserve the route robots policy', async () => {
+  const source = await fs.readFile(new URL('src/app/retrostream.js', root), 'utf8');
+  assert.match(source, /DEFAULT_ROBOTS/);
+  assert.match(source, /document\.head\.querySelector\('meta\[name="robots"\]'\)\?\.content\|\|DEFAULT_ROBOTS/);
+  assert.match(source, /canonicalPath:location\.pathname,robots\}/);
+  assert.doesNotMatch(source, /canonicalPath:location\.pathname,robots:'noindex, follow'/);
+  assert.match(source, /kind==='search'[\s\S]*robots:'noindex, follow/);
+  assert.match(source, /kind==='watch'[\s\S]*robots:'noindex, follow/);
+});
