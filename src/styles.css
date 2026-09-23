@@ -74,21 +74,8 @@ html{overflow-x:visible}
   .search-page .filters{grid-template-columns:repeat(2,minmax(0,1fr))}
   .search-page #reset-filters{grid-column:1/-1}
 }
-@media(max-width:680px){
-  .search-page{padding-bottom:28px}
-  .search-page .browse-title{margin:32px 0 18px}
-  .search-page .search-form{grid-template-columns:1fr;gap:8px}
-  .search-page .search-form input{height:52px;font-size:16px}
-  .search-page .search-form .btn{width:100%;height:48px}
-  .search-page .search-hint{margin:8px 0 18px}
-  .search-page .filters{gap:8px;margin-bottom:22px}
-}
-@media(max-width:440px){
-  .search-page .filters{grid-template-columns:1fr}
-  .search-page #reset-filters{grid-column:auto}
-}
 
-/* Mobile filters: compact two-column control grid with consistent touch targets. */
+/* Mobile filters: compact controls with a search-specific responsive hierarchy. */
 @media(max-width:680px){
   .filters{
     display:grid;
@@ -117,21 +104,60 @@ html{overflow-x:visible}
     border-color:var(--border-strong);
     background:var(--hover-bg);
   }
+
+  .search-page{padding-bottom:28px}
+  .search-page .browse-title{
+    font-size:clamp(30px,9vw,34px);
+    line-height:1.08;
+    margin:28px 0 16px;
+  }
+  .search-page .search-form{
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:8px;
+  }
+  .search-page .search-form input{
+    min-width:0;
+    height:52px;
+    padding-inline:16px;
+    font-size:16px;
+  }
+  .search-page .search-form .btn{
+    width:auto;
+    height:52px;
+    padding-inline:18px;
+  }
+  .search-page .search-hint{margin:6px 0 14px}
   .search-page .filters{
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:8px;
-    margin:0 0 22px;
+    margin:0 0 18px;
   }
   .search-page #reset-filters{
     grid-column:1/-1;
-    justify-self:stretch;
+    width:auto;
+    min-height:44px;
+    justify-self:start;
+    justify-content:flex-start;
+    padding-inline:8px;
+    border-color:transparent;
+    background:transparent;
   }
+  .search-page #reset-filters:hover,
+  .search-page #reset-filters:focus-visible{
+    color:var(--ink);
+    border-color:transparent;
+    background:transparent;
+    text-decoration:underline;
+    text-underline-offset:4px;
+  }
+  .search-page .result-summary{margin-bottom:16px}
 }
-@media(max-width:340px){
-  .filters{
+
+@media(max-width:360px){
+  .filters,
+  .search-page .filters{
     grid-template-columns:1fr;
   }
-  .search-page #reset-filters{
-    grid-column:auto;
-  }
+  .search-page #reset-filters{grid-column:auto}
+  .search-page .search-form .btn{padding-inline:14px}
 }
