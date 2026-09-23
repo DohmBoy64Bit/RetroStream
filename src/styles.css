@@ -107,8 +107,8 @@ html{overflow-x:visible}
 
   .search-page{padding-bottom:28px}
   .search-page .browse-title{
-    font-size:clamp(30px,9vw,34px);
-    line-height:1.08;
+    font-size:clamp(26px,8vw,30px);
+    line-height:1.1;
     margin:28px 0 16px;
   }
   .search-page .search-form{
